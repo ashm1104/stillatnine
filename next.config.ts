@@ -7,6 +7,11 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: path.resolve(__dirname),
   },
+  // The Dodo webhook reads the welcome email HTML at runtime via fs. Trace it
+  // into that function's bundle so it exists on Vercel (see lib/welcome-email).
+  outputFileTracingIncludes: {
+    "/api/webhooks/dodo": ["./emails/welcome-template.html"],
+  },
 };
 
 export default nextConfig;
