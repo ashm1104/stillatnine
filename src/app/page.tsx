@@ -1,66 +1,38 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+import { headers } from "next/headers";
+import { getPricing } from "@/lib/pricing";
 
-export default function Home() {
+import { Navbar } from "@/components/Navbar";
+import { HeroSection } from "@/components/HeroSection";
+import { WhatYoullRead } from "@/components/WhatYoullRead";
+import { StoriesSection } from "@/components/StoriesSection";
+import { HowItWorks } from "@/components/HowItWorks";
+import { WhatThisIsNot } from "@/components/WhatThisIsNot";
+import { EveryStoryIsReal } from "@/components/EveryStoryIsReal";
+import { FinalCTA } from "@/components/FinalCTA";
+import { WhosBehind } from "@/components/WhosBehind";
+import { Footer } from "@/components/Footer";
+
+// Locked config (HANDOFF §6): cinematic / alternating / archive / rich.
+// Section tone: alternating -> dark when index is even.
+const isDark = (idx: number) => idx % 2 === 0;
+
+export default async function LandingPage() {
+  // Geo-pricing from Vercel's edge header. India -> ₹499, otherwise -> $19.
+  const country = (await headers()).get("x-vercel-ip-country");
+  const pricing = getPricing(country);
+
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className={styles.intro}>
-          <h1>To get started, edit the page.tsx file.</h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+    <div className="lp">
+      <Navbar />
+      <HeroSection pricing={pricing} />
+      <WhatYoullRead dark={isDark(1)} />
+      <StoriesSection dark={isDark(2)} />
+      <HowItWorks dark={isDark(3)} />
+      <WhatThisIsNot dark={isDark(4)} />
+      <EveryStoryIsReal dark={isDark(5)} />
+      <FinalCTA dark={isDark(6)} pricing={pricing} />
+      <WhosBehind dark={isDark(7)} />
+      <Footer />
     </div>
   );
 }

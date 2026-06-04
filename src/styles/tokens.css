@@ -1,0 +1,63 @@
+/* ============================================================
+   Still at Nine — LOCKED Design Tokens
+   Direction: Lamplight × The Archive
+   Locked: May 29, 2026
+   ============================================================ */
+
+:root {
+  /* ============ Palette: Lamplight ============ */
+
+  /* Dark context — hero / after-dark */
+  --san-dk-bg:       #130F0A;
+  --san-dk-surface:  #1E1811;
+  --san-dk-text:     #F0E9DC;
+  --san-dk-muted:    #9C8E78;
+  --san-dk-border:   #2C231A;
+  --san-dk-accent:   #D8A24C;
+
+  /* Light context — body / reading */
+  --san-lt-bg:       #F5EFE4;
+  --san-lt-surface:  #FFFDF8;
+  --san-lt-text:     #1A140D;
+  --san-lt-muted:    #6B6051;
+  --san-lt-border:   #E4DBCB;
+  --san-lt-accent:   #9C6B1B;
+
+  /* CTA */
+  --san-cta-bg:        #D8A24C;
+  --san-cta-text:      #130F0A;
+  --san-cta-bg-hover:  #E6B663;
+  --san-cta-text-hover:#130F0A;
+
+  /* ============ Typography: The Archive ============ */
+  --san-font-heading: 'Playfair Display', Georgia, 'Times New Roman', serif;
+  --san-font-body:    'Spectral', Georgia, Cambria, serif;
+  --san-weight-heading: 600;
+  --san-tracking-heading: -0.01em;
+
+  /* ============ Spacing — 4px base ============ */
+  --san-space-3xs: 4px;
+  --san-space-2xs: 8px;
+  --san-space-xs:  12px;
+  --san-space-sm:  16px;
+  --san-space-md:  24px;
+  --san-space-lg:  32px;
+  --san-space-xl:  48px;
+  --san-space-2xl: 64px;
+  --san-space-3xl: 96px;
+  --san-space-4xl: 128px;
+
+  /* ============ Max-widths ============ */
+  --san-w-read:    680px;
+  --san-w-content: 920px;
+  --san-w-wide:    1120px;
+
+  /* ============ Atmosphere settings ============ */
+  /* Glow intensity: 85%
+     Ember density:  medium (18 particles)
+     "9" watermark:  yes
+     Archival frame: no
+     Light-pool arcs: yes
+     Edge vignette:  yes
+     Grain:          50%  */
+}

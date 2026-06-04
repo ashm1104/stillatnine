@@ -1,0 +1,274 @@
+/* Still at Nine — Transactional pages (thank-you / unsubscribe / 404)
+   Reuses brand tokens from lp-styles.css; this file adds page-specific layout. */
+
+.tx-page {
+  position: relative; min-height: 100vh; overflow: hidden;
+  display: flex; flex-direction: column;
+  background: var(--dk); color: var(--tdk);
+}
+.tx-main {
+  position: relative; z-index: 3; flex: 1;
+  display: flex; align-items: center; justify-content: center;
+  padding: 120px 28px 80px;
+}
+.tx-inner {
+  width: 100%; max-width: 560px; text-align: center;
+  display: flex; flex-direction: column; align-items: center;
+}
+.tx-inner--wide { max-width: 620px; }
+
+/* brand lockup top-left */
+.tx-brand {
+  position: absolute; top: 28px; left: 28px; z-index: 5;
+  display: flex; align-items: center; gap: 10px;
+  text-decoration: none;
+}
+.tx-brand-name {
+  font-family: var(--pf); font-size: 18px; font-weight: 600;
+  color: var(--tdk); letter-spacing: -0.01em; white-space: nowrap;
+}
+
+/* the lamp / mark */
+.tx-lamp { margin-bottom: 30px; line-height: 0; }
+.tx-dot {
+  display: inline-block; width: 15px; height: 15px; border-radius: 50%;
+  background: var(--ac);
+  box-shadow: 0 0 34px 8px rgba(216,162,76,0.5), 0 0 0 1px rgba(230,182,99,0.35);
+}
+.tx-dot--out {
+  background: #3A2F20;
+  box-shadow: 0 0 0 1px rgba(156,142,120,0.25);
+}
+
+.tx-eyebrow {
+  font-family: var(--sc); font-weight: 600; font-size: 13px;
+  letter-spacing: 0.28em; text-transform: uppercase;
+  color: var(--ac); margin-bottom: 22px;
+}
+.tx-eyebrow--mute { color: var(--mdk); }
+
+.tx-title {
+  font-family: var(--pf); font-weight: 600;
+  font-size: clamp(40px, 7vw, 64px); line-height: 1.08;
+  letter-spacing: -0.02em; margin: 0; color: var(--tdk);
+  text-wrap: balance;
+}
+.tx-underscore {
+  width: 120px; height: 2px; background: var(--ac);
+  opacity: 0.55; border-radius: 1px; margin: 22px 0 0;
+}
+.tx-underscore--out { background: var(--mdk); opacity: 0.3; }
+
+.tx-tagline {
+  font-family: var(--sp); font-style: italic;
+  font-size: clamp(18px, 3vw, 23px); line-height: 1.4;
+  color: var(--tdk); opacity: 0.95; margin: 26px 0 0; max-width: 460px;
+  text-wrap: pretty;
+}
+.tx-body {
+  font-family: var(--sp); font-size: 17px; line-height: 1.7;
+  color: var(--mdk); margin: 20px 0 0; max-width: 460px; text-wrap: pretty;
+}
+
+/* diamond rule */
+.tx-rule {
+  display: flex; align-items: center; gap: 14px; margin: 38px 0 0;
+  color: var(--ac);
+}
+.tx-rule div { width: 70px; height: 1px; background: currentColor; opacity: 0.4; }
+.tx-rule span { font-size: 9px; line-height: 1; opacity: 0.8; }
+
+/* receipt / order card */
+.tx-card {
+  width: 100%; margin: 40px 0 0;
+  background: var(--dk2); border: 1px solid var(--bdk);
+  border-radius: 16px; padding: 30px 32px; text-align: left;
+}
+.tx-card-head {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 16px;
+  padding-bottom: 20px; border-bottom: 1px solid var(--bdk);
+}
+.tx-card-title {
+  font-family: var(--pf); font-size: 20px; font-weight: 600;
+  color: var(--tdk); margin: 0; line-height: 1.2;
+}
+.tx-card-sub {
+  font-family: var(--sc); font-size: 11px; letter-spacing: 0.16em;
+  text-transform: uppercase; color: var(--mdk); margin: 8px 0 0;
+}
+.tx-card-paid {
+  font-family: var(--sc); font-size: 12px; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--ac); white-space: nowrap;
+  display: flex; flex-direction: column; align-items: flex-end; gap: 4px;
+}
+.tx-card-amount {
+  font-family: var(--pf); font-size: 24px; font-weight: 600;
+  color: var(--tdk); letter-spacing: -0.01em;
+}
+.tx-card-strike { text-decoration: line-through; opacity: 0.4; font-size: 15px; margin-right: 6px; }
+
+.tx-steps { list-style: none; margin: 20px 0 0; padding: 0; }
+.tx-step {
+  display: flex; align-items: flex-start; gap: 14px;
+  padding: 14px 0; border-bottom: 1px solid var(--bdk);
+}
+.tx-step:last-child { border-bottom: 0; padding-bottom: 0; }
+.tx-step-ic {
+  flex: none; width: 26px; height: 26px; border-radius: 50%;
+  border: 1px solid var(--ac); color: var(--ac);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--sc); font-size: 11px; font-weight: 600; margin-top: 1px;
+}
+.tx-step-txt {
+  font-family: var(--sp); font-size: 15.5px; line-height: 1.55; color: var(--tdk);
+}
+.tx-step-txt b { color: var(--ac); font-weight: 600; }
+
+/* CTA + secondary links */
+.tx-actions { margin: 40px 0 0; display: flex; flex-direction: column; align-items: center; gap: 18px; }
+.tx-cta {
+  appearance: none; border: 0; cursor: pointer; text-decoration: none;
+  font-family: var(--sp); font-size: 17px; font-weight: 500;
+  color: var(--dk); background: var(--ac);
+  padding: 16px 34px; border-radius: 10px;
+  transition: background .18s, transform .18s;
+}
+.tx-cta:hover { background: var(--ac-hover); transform: translateY(-1px); }
+.tx-link {
+  appearance: none; border: 0; background: transparent; cursor: pointer;
+  font-family: var(--sp); font-size: 15px; color: var(--mdk);
+  text-decoration: none; transition: color .15s;
+}
+.tx-link:hover { color: var(--tdk); }
+.tx-link b { color: var(--ac); font-weight: 500; }
+
+.tx-note {
+  font-family: var(--sp); font-size: 13.5px; font-style: italic;
+  color: var(--mdk); opacity: 0.8; margin: 28px 0 0;
+}
+
+/* big 404 numeral treatment */
+.tx-404 {
+  position: relative; margin-bottom: 8px;
+  font-family: var(--pf); font-weight: 600;
+  font-size: clamp(120px, 22vw, 200px); line-height: 0.9;
+  color: var(--tdk); letter-spacing: -0.02em;
+}
+.tx-404 .nine-dot {
+  color: var(--ac); text-shadow: 0 0 50px rgba(216,162,76,0.5);
+}
+
+/* footer */
+.tx-footer {
+  position: relative; z-index: 3;
+  padding: 32px 28px; text-align: center;
+  border-top: 1px solid var(--bdk);
+}
+.tx-footer p {
+  font-family: var(--sc); font-size: 11px; color: var(--mdk);
+  letter-spacing: 0.12em; margin: 0;
+}
+
+/* preview switcher (not part of the shipped page) */
+.tx-switch {
+  position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%);
+  z-index: 200; display: flex; gap: 4px;
+  background: rgba(19,15,10,0.86); backdrop-filter: blur(14px);
+  border: 1px solid var(--bdk); border-radius: 999px; padding: 5px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+}
+.tx-switch button {
+  appearance: none; border: 0; cursor: pointer;
+  font-family: var(--sc); font-size: 11px; font-weight: 600;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--mdk); background: transparent;
+  padding: 9px 18px; border-radius: 999px; transition: all .15s;
+}
+.tx-switch button:hover { color: var(--tdk); }
+.tx-switch button.on { color: var(--dk); background: var(--ac); }
+
+@media (max-width: 560px) {
+  .tx-card { padding: 24px 22px; }
+  .tx-card-head { flex-direction: column; }
+  .tx-card-paid { align-items: flex-start; }
+  .tx-switch button { padding: 8px 13px; }
+}
+
+/* ===== error state — the guttering lamp ===== */
+.tx-dot--flicker { animation: flicker 3.2s ease-in-out infinite; }
+@keyframes flicker {
+  0%, 100% { opacity: 1; box-shadow: 0 0 34px 8px rgba(216,162,76,0.5), 0 0 0 1px rgba(230,182,99,0.35); }
+  42% { opacity: 1; }
+  46% { opacity: 0.35; box-shadow: 0 0 12px 3px rgba(216,162,76,0.25), 0 0 0 1px rgba(230,182,99,0.2); }
+  48% { opacity: 0.9; box-shadow: 0 0 34px 8px rgba(216,162,76,0.45), 0 0 0 1px rgba(230,182,99,0.3); }
+  52% { opacity: 0.4; box-shadow: 0 0 14px 3px rgba(216,162,76,0.25); }
+  56% { opacity: 1; box-shadow: 0 0 34px 8px rgba(216,162,76,0.5), 0 0 0 1px rgba(230,182,99,0.35); }
+}
+@media (prefers-reduced-motion: reduce) { .tx-dot--flicker { animation: none; } }
+
+/* secondary / ghost button */
+.tx-cta--ghost {
+  background: transparent; color: var(--tdk);
+  border: 1px solid var(--bdk);
+}
+.tx-cta--ghost:hover { background: rgba(255,255,255,0.04); border-color: rgba(216,162,76,0.4); }
+
+/* CTA busy state */
+.tx-cta--busy { pointer-events: none; opacity: 0.85; display: inline-flex; align-items: center; gap: 11px; }
+.tx-spin {
+  width: 16px; height: 16px; border-radius: 50%;
+  border: 2px solid rgba(19,15,10,0.35); border-top-color: var(--dk);
+  animation: spin 0.7s linear infinite; flex: none;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* error mailto link row */
+.tx-help {
+  margin-top: 26px; font-family: var(--sp); font-size: 14px; color: var(--mdk);
+}
+.tx-help a { color: var(--ac); text-decoration: none; border-bottom: 1px solid rgba(216,162,76,0.3); padding-bottom: 1px; }
+.tx-help a:hover { border-bottom-color: var(--ac); }
+
+/* ===== loading state — lighting the lamp ===== */
+.tx-loader { display: flex; flex-direction: column; align-items: center; }
+.tx-loader-lamp {
+  position: relative; width: 18px; height: 18px; border-radius: 50%;
+  background: var(--ac); animation: breathe 2.4s ease-in-out infinite;
+}
+.tx-loader-halo {
+  position: absolute; left: 50%; top: 50%; width: 120px; height: 120px;
+  transform: translate(-50%, -50%); border-radius: 50%;
+  background: radial-gradient(circle, rgba(216,162,76,0.28) 0%, transparent 62%);
+  animation: halo 2.4s ease-in-out infinite;
+}
+@keyframes breathe {
+  0%, 100% { box-shadow: 0 0 20px 5px rgba(216,162,76,0.4); transform: scale(0.92); }
+  50% { box-shadow: 0 0 46px 12px rgba(216,162,76,0.6); transform: scale(1.08); }
+}
+@keyframes halo {
+  0%, 100% { opacity: 0.4; transform: translate(-50%, -50%) scale(0.85); }
+  50% { opacity: 0.9; transform: translate(-50%, -50%) scale(1.15); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tx-loader-lamp, .tx-loader-halo { animation: none; }
+}
+.tx-loader-text {
+  font-family: var(--sc); font-size: 12px; font-weight: 600;
+  letter-spacing: 0.26em; text-transform: uppercase; color: var(--mdk);
+  margin-top: 48px;
+}
+.tx-loader-sub {
+  font-family: var(--sp); font-style: italic; font-size: 15px;
+  color: var(--mdk); opacity: 0.7; margin-top: 14px;
+}
+/* progress shimmer */
+.tx-progress {
+  width: 180px; height: 2px; border-radius: 2px; margin-top: 30px;
+  background: var(--bdk); overflow: hidden; position: relative;
+}
+.tx-progress::after {
+  content: ""; position: absolute; inset: 0; width: 40%;
+  background: linear-gradient(90deg, transparent, var(--ac), transparent);
+  animation: sweep 1.6s ease-in-out infinite;
+}
+@keyframes sweep { 0% { left: -40%; } 100% { left: 100%; } }
