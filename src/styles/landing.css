@@ -56,8 +56,10 @@ img { max-width: 100%; }
 }
 .navbar-link:hover { color: var(--tdk); background: rgba(255,255,255,0.06); }
 @media (max-width: 560px) {
+  .navbar { padding: 14px 16px; }
   .navbar-name { display: none; }
-  .navbar-link:not(.navbar-link--cta) { display: none; }
+  .navbar-links { gap: 0; }
+  .navbar-link { padding: 8px 8px; font-size: 13px; }
 }
 
 /* ===== grain ===== */
@@ -284,7 +286,10 @@ img { max-width: 100%; }
 
 @media (max-width: 768px) {
   .how-grid { grid-template-columns: 1fr; }
-  .how-step { border-radius: 0 !important; border-left: 1px solid !important; }
+  /* Restore the left border on the single-column stack WITHOUT resetting its
+     color — `border-left: 1px solid` would fall back to currentColor (black).
+     Width + style only keeps the inline borderColor (--blt / --bdk). */
+  .how-step { border-radius: 0 !important; border-left-width: 1px !important; border-left-style: solid !important; }
   .how-step:first-child { border-radius: 16px 16px 0 0 !important; }
   .how-step:last-child { border-radius: 0 0 16px 16px !important; }
   .how-step:nth-child(2),
@@ -382,4 +387,16 @@ img { max-width: 100%; }
   .story-num { min-width: auto; }
   .who-card { flex-direction: column; align-items: center; text-align: center; }
   .modal { padding: 28px 22px; }
+
+  /* Trim the CTAs so they don't dominate the narrow viewport */
+  .cta-btn { font-size: 16px; padding: 15px 24px; margin-top: 28px; }
+  .cta-btn--lg { font-size: 17px; padding: 16px 28px; }
+
+  /* Atmosphere: pull the lamp glow inward/up and raise the "9" watermark
+     so they read on a tall, narrow screen (overrides the inline desktop glow,
+     which is tuned for wide aspect ratios). Values = rich level (0.85). */
+  .atmo-glow {
+    background: radial-gradient(125% 70% at 65% 82%, rgba(216,162,76,0.255) 0%, rgba(216,162,76,0.0595) 34%, transparent 62%) !important;
+  }
+  .atmo-nine { right: 4%; bottom: 14%; font-size: clamp(220px, 78vw, 380px); }
 }
