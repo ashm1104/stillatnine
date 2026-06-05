@@ -70,7 +70,11 @@ function Footer() {
   );
 }
 
-function ThankYou({ currency }: { currency?: string | null }) {
+type Order = { currency?: string | null; email?: string | null };
+
+function ThankYou({ order }: { order?: Order | null }) {
+  const currency = order?.currency;
+  const email = order?.email;
   const { price, anchor } = displayForCurrency(currency);
 
   return (
@@ -121,6 +125,13 @@ function ThankYou({ currency }: { currency?: string | null }) {
             </ul>
           </div>
 
+          {email && (
+            <p className="tx-note">
+              Sending your stories to{" "}
+              <b style={{ color: "var(--tdk)", fontStyle: "normal" }}>{email}</b>.
+              {" "}Not you? Reply to any email and we&rsquo;ll set it right.
+            </p>
+          )}
           <p className="tx-note">A receipt is on its way to your inbox. Nothing to download, nothing to log into.</p>
         </div>
       </main>
@@ -134,7 +145,7 @@ function ThankYou({ currency }: { currency?: string | null }) {
  * order's currency so the receipt shows the right price. Retries while the
  * webhook is still creating the user row.
  */
-function useCaptureTimezone(onCurrency: (currency: string) => void) {
+function useCaptureTimezone(onOrder: (order: Order) => void) {
   const searchParams = useSearchParams();
 
   useEffect(() => {
@@ -170,7 +181,9 @@ function useCaptureTimezone(onCurrency: (currency: string) => void) {
           });
           if (res.status === 200) {
             const body = await res.json().catch(() => null);
-            if (body?.currency && !cancelled) onCurrency(body.currency);
+            if (body && !cancelled) {
+              onOrder({ currency: body.currency, email: body.email });
+            }
             return; // saved
           }
           if (res.status === 400 || res.status === 401) return; // won't fix on retry
@@ -185,13 +198,13 @@ function useCaptureTimezone(onCurrency: (currency: string) => void) {
     return () => {
       cancelled = true;
     };
-  }, [searchParams, onCurrency]);
+  }, [searchParams, onOrder]);
 }
 
 function WelcomeClient() {
-  const [currency, setCurrency] = useState<string | null>(null);
-  useCaptureTimezone(setCurrency);
-  return <ThankYou currency={currency} />;
+  const [order, setOrder] = useState<Order | null>(null);
+  useCaptureTimezone(setOrder);
+  return <ThankYou order={order} />;
 }
 
 export default function WelcomePage() {

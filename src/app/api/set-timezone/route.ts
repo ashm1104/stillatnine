@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
     .from("users")
     .update({ timezone: tz })
     .eq("dodo_payment_id", id)
-    .select("currency, amount_paid");
+    .select("currency, email");
 
   if (error) {
     console.error("[set-timezone] update failed:", error);
@@ -61,9 +61,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, found: false }, { status: 202 });
   }
 
-  // Return the order so /welcome can show the price in the paid currency.
+  // Return the order so /welcome can show the paid currency and let the buyer
+  // confirm the delivery email (typo safety net — sourced from the DB, not the
+  // URL, so we don't depend on the email param Dodo puts in the redirect).
   return NextResponse.json(
-    { ok: true, found: true, currency: row.currency },
+    { ok: true, found: true, currency: row.currency, email: row.email },
     { status: 200 },
   );
 }
