@@ -70,6 +70,18 @@
   color: var(--mdk); margin: 20px 0 0; max-width: 460px; text-wrap: pretty;
 }
 
+/* delivery-email confirmation on the thank-you page */
+.tx-confirm {
+  font-family: var(--sp); font-size: 14.5px; line-height: 1.6;
+  color: var(--mdk); margin: 22px 0 0; max-width: 460px; text-wrap: pretty;
+}
+.tx-confirm b { color: var(--tdk); font-weight: 600; }
+.tx-confirm a {
+  color: var(--ac); text-decoration: none;
+  border-bottom: 1px solid rgba(216,162,76,0.3);
+}
+.tx-confirm a:hover { border-bottom-color: var(--ac); }
+
 /* diamond rule */
 .tx-rule {
   display: flex; align-items: center; gap: 14px; margin: 38px 0 0;

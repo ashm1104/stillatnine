@@ -8,74 +8,18 @@
 // set-timezone returns 202 until it exists and we retry a few times.
 
 import { Suspense, useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { displayForCurrency } from "@/lib/pricing";
+import { Atmosphere, Brand, Footer } from "@/components/TxChrome";
 import "@/styles/transactional.css";
-
-const AC = "#D8A24C";
-
-/* ---- atmosphere (ported from the landing page) ---- */
-function Atmosphere({ level = "subtle" }: { level?: "none" | "subtle" | "full" }) {
-  const s = level === "none" ? 0 : level === "full" ? 0.85 : 0.5;
-  if (s === 0) return null;
-  const embers: [number, number, number, number][] = [
-    [85, 78, 2.4, 0.8], [80, 70, 1.5, 0.55], [88, 60, 1.8, 0.65], [78, 82, 1.3, 0.45],
-    [72, 68, 1.7, 0.5], [82, 48, 1.2, 0.4], [74, 80, 2.0, 0.6], [68, 76, 1.3, 0.38],
-    [90, 72, 1.4, 0.5], [64, 64, 1.1, 0.34], [58, 72, 1.5, 0.42], [50, 60, 1.0, 0.3],
-  ];
-  return (
-    <div className="atmo" aria-hidden="true">
-      <div
-        className="atmo-glow"
-        style={{
-          background: `radial-gradient(100% 80% at 50% 108%, rgba(216,162,76,${0.26 * s}) 0%, rgba(216,162,76,${0.06 * s}) 34%, transparent 62%)`,
-        }}
-      />
-      <svg className="atmo-arcs" viewBox="0 0 100 100" preserveAspectRatio="none">
-        {[30, 46, 64].map((r, i) => (
-          <circle key={i} cx="50" cy="108" r={r} fill="none" stroke={AC} strokeWidth="0.12" opacity={(0.12 - i * 0.03) * s} />
-        ))}
-      </svg>
-      <svg className="atmo-embers" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">
-        {embers.map(([x, y, r, o], i) => (
-          <g key={i}>
-            {r > 1.5 && (
-              <circle cx={x} cy={y} r={r * 2.5} fill={AC} className="ember" opacity={o * 0.1 * s} style={{ animationDelay: `${(i % 10) * 0.7}s`, animationDuration: `${6 + (i % 6)}s` }} />
-            )}
-            <circle cx={x} cy={y} r={r * 0.5} fill={AC} className="ember" opacity={o * s} style={{ animationDelay: `${(i % 8) * 0.6}s`, animationDuration: `${5 + (i % 5)}s` }} />
-          </g>
-        ))}
-      </svg>
-      <div className="atmo-nine" style={{ opacity: 0.018 * s, left: "auto", right: "50%", transform: "translateX(50%)", bottom: "-8%" }}>9</div>
-      <div className="atmo-vig" style={{ opacity: s * 0.9 }} />
-      <div className="grain" style={{ opacity: 0.045 * s }} />
-    </div>
-  );
-}
-
-function Brand() {
-  return (
-    <a className="tx-brand" href="/">
-      <span style={{ display: "inline-block", width: 16, height: 16, borderRadius: "50%", background: AC, boxShadow: "0 0 16px 3px rgba(216,162,76,0.45)" }} />
-      <span className="tx-brand-name">Still at Nine</span>
-    </a>
-  );
-}
-
-function Footer() {
-  return (
-    <footer className="tx-footer">
-      <p>© 2026 Still at Nine · Stories after dark</p>
-    </footer>
-  );
-}
 
 type Order = { currency?: string | null; email?: string | null };
 
-function ThankYou({ order }: { order?: Order | null }) {
+function ThankYou({ order, tzLabel }: { order?: Order | null; tzLabel?: string | null }) {
   const currency = order?.currency;
   const email = order?.email;
   const { price, anchor } = displayForCurrency(currency);
+  const nineLabel = tzLabel ? `9 PM ${tzLabel}` : "9 PM";
 
   return (
     <div className="tx-page">
@@ -88,6 +32,16 @@ function ThankYou({ order }: { order?: Order | null }) {
           <h1 className="tx-title">You&rsquo;re in.</h1>
           <div className="tx-underscore" />
           <p className="tx-tagline">The lamp is lit. Your first story arrives tonight at 9.</p>
+
+          {/* Delivery-email confirmation, surfaced high so it's seen without
+              scrolling — the buyer's typo safety net. */}
+          {email && (
+            <p className="tx-confirm">
+              Your stories are headed to{" "}
+              <b>{email}</b>. Not you? Write to us at{" "}
+              <a href="mailto:hello@stillatnine.com">hello@stillatnine.com</a>.
+            </p>
+          )}
 
           <div className="tx-card">
             <div className="tx-card-head">
@@ -112,7 +66,7 @@ function ThankYou({ order }: { order?: Order | null }) {
             <ul className="tx-steps">
               <li className="tx-step">
                 <span className="tx-step-ic">1</span>
-                <span className="tx-step-txt">Your first story lands <b>tonight at 9 PM</b>, then three nights a week.</span>
+                <span className="tx-step-txt">Your first story lands <b>tonight at {nineLabel}</b>, then three nights a week.</span>
               </li>
               <li className="tx-step">
                 <span className="tx-step-ic">2</span>
@@ -125,13 +79,6 @@ function ThankYou({ order }: { order?: Order | null }) {
             </ul>
           </div>
 
-          {email && (
-            <p className="tx-note">
-              Sending your stories to{" "}
-              <b style={{ color: "var(--tdk)", fontStyle: "normal" }}>{email}</b>.
-              {" "}Not you? Reply to any email and we&rsquo;ll set it right.
-            </p>
-          )}
           <p className="tx-note">A receipt is on its way to your inbox. Nothing to download, nothing to log into.</p>
         </div>
       </main>
@@ -145,10 +92,11 @@ function ThankYou({ order }: { order?: Order | null }) {
  * order's currency so the receipt shows the right price. Retries while the
  * webhook is still creating the user row.
  */
-function useCaptureTimezone(onOrder: (order: Order) => void) {
+function useCaptureTimezone(onOrder: (order: Order) => void, enabled: boolean) {
   const searchParams = useSearchParams();
 
   useEffect(() => {
+    if (!enabled) return; // payment didn't succeed — don't touch any record
     const paymentId = searchParams.get("payment_id");
     if (!paymentId) return; // can't identify the buyer — nothing to save
 
@@ -198,13 +146,52 @@ function useCaptureTimezone(onOrder: (order: Order) => void) {
     return () => {
       cancelled = true;
     };
-  }, [searchParams, onOrder]);
+  }, [searchParams, onOrder, enabled]);
+}
+
+/** The buyer's resolved timezone abbreviation (e.g. "IST", "GMT+5:30"). */
+function useTimezoneLabel(): string | null {
+  const [label, setLabel] = useState<string | null>(null);
+  useEffect(() => {
+    // Client-only (avoids SSR/hydration mismatch — the server is UTC).
+    try {
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      if (!tz) return;
+      const part = new Intl.DateTimeFormat(undefined, {
+        timeZone: tz,
+        hour: "numeric",
+        timeZoneName: "short",
+      })
+        .formatToParts(new Date())
+        .find((p) => p.type === "timeZoneName");
+      if (part?.value) setLabel(part.value);
+    } catch {
+      /* Intl unavailable — fall back to a plain "9 PM" */
+    }
+  }, []);
+  return label;
 }
 
 function WelcomeClient() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  // Dodo sends the outcome in `status`. Anything other than success means the
+  // payment didn't go through — send them to the error page instead of
+  // showing a false "You're in".
+  const status = searchParams.get("status");
+  const failed = status !== null && status !== "succeeded";
+
+  useEffect(() => {
+    if (failed) router.replace("/error");
+  }, [failed, router]);
+
   const [order, setOrder] = useState<Order | null>(null);
-  useCaptureTimezone(setOrder);
-  return <ThankYou order={order} />;
+  const tzLabel = useTimezoneLabel();
+  useCaptureTimezone(setOrder, !failed);
+
+  if (failed) return null; // don't flash the success UI while redirecting
+  return <ThankYou order={order} tzLabel={tzLabel} />;
 }
 
 export default function WelcomePage() {
