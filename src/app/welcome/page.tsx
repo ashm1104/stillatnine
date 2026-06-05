@@ -7,8 +7,9 @@
 // to this URL on redirect. The webhook may still be creating the user row, so
 // set-timezone returns 202 until it exists and we retry a few times.
 
-import { Suspense, useEffect } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { displayForCurrency } from "@/lib/pricing";
 import "@/styles/transactional.css";
 
 const AC = "#D8A24C";
@@ -69,7 +70,9 @@ function Footer() {
   );
 }
 
-function ThankYou() {
+function ThankYou({ currency }: { currency?: string | null }) {
+  const { price, anchor } = displayForCurrency(currency);
+
   return (
     <div className="tx-page">
       <Atmosphere level="subtle" />
@@ -89,7 +92,16 @@ function ThankYou() {
                 <p className="tx-card-sub">24 stories · 8 weeks · delivered 9 PM</p>
               </div>
               <div className="tx-card-paid">
-                <span className="tx-card-amount"><span className="tx-card-strike">$24</span>$19</span>
+                {currency ? (
+                  <span className="tx-card-amount">
+                    <span className="tx-card-strike">{anchor}</span>
+                    {price}
+                  </span>
+                ) : (
+                  // Until the order resolves, show a neutral placeholder rather
+                  // than risk flashing the wrong currency.
+                  <span className="tx-card-amount" style={{ opacity: 0.35 }}>·</span>
+                )}
                 <span>Paid · one time</span>
               </div>
             </div>
@@ -117,8 +129,12 @@ function ThankYou() {
   );
 }
 
-/** Captures the timezone and saves it against the payment_id from the URL. */
-function useCaptureTimezone() {
+/**
+ * Saves the timezone against the payment_id from the URL, and reports back the
+ * order's currency so the receipt shows the right price. Retries while the
+ * webhook is still creating the user row.
+ */
+function useCaptureTimezone(onCurrency: (currency: string) => void) {
   const searchParams = useSearchParams();
 
   useEffect(() => {
@@ -152,7 +168,11 @@ function useCaptureTimezone() {
             headers: { "content-type": "application/json" },
             body: JSON.stringify({ paymentId, timezone: tz }),
           });
-          if (res.status === 200) return; // saved
+          if (res.status === 200) {
+            const body = await res.json().catch(() => null);
+            if (body?.currency && !cancelled) onCurrency(body.currency);
+            return; // saved
+          }
           if (res.status === 400 || res.status === 401) return; // won't fix on retry
           // 202 (row not created yet) or 5xx -> wait and retry
         } catch {
@@ -165,12 +185,13 @@ function useCaptureTimezone() {
     return () => {
       cancelled = true;
     };
-  }, [searchParams]);
+  }, [searchParams, onCurrency]);
 }
 
 function WelcomeClient() {
-  useCaptureTimezone();
-  return <ThankYou />;
+  const [currency, setCurrency] = useState<string | null>(null);
+  useCaptureTimezone(setCurrency);
+  return <ThankYou currency={currency} />;
 }
 
 export default function WelcomePage() {

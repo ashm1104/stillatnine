@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
     .from("users")
     .update({ timezone: tz })
     .eq("dodo_payment_id", id)
-    .select("id");
+    .select("currency, amount_paid");
 
   if (error) {
     console.error("[set-timezone] update failed:", error);
@@ -56,6 +56,14 @@ export async function POST(req: NextRequest) {
   }
 
   // No row yet => the webhook hasn't created the user. Ask the client to retry.
-  const found = !!data && data.length > 0;
-  return NextResponse.json({ ok: found, found }, { status: found ? 200 : 202 });
+  const row = data?.[0];
+  if (!row) {
+    return NextResponse.json({ ok: false, found: false }, { status: 202 });
+  }
+
+  // Return the order so /welcome can show the price in the paid currency.
+  return NextResponse.json(
+    { ok: true, found: true, currency: row.currency },
+    { status: 200 },
+  );
 }

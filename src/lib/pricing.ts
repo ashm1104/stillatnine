@@ -17,16 +17,29 @@ export interface Pricing {
 }
 
 /**
+ * Marketing price + anchor for a currency. The single source of truth for the
+ * displayed price strings — used both for geo-pricing on the landing page and
+ * for the post-purchase receipt on /welcome (where we only know the currency).
+ */
+export function displayForCurrency(currency: string | null | undefined): {
+  price: string;
+  anchor: string;
+} {
+  return (currency || "").toUpperCase() === "INR"
+    ? { price: "₹499", anchor: "₹799" }
+    : { price: "$19", anchor: "$24" };
+}
+
+/**
  * Resolve pricing from a country code (Vercel `x-vercel-ip-country`).
  * Pass the raw header value; anything other than "IN" gets USD pricing.
  */
 export function getPricing(country: string | null | undefined): Pricing {
   const isIndia = (country || "").toUpperCase() === "IN";
-  const checkoutUrl = dodoCheckoutUrl(country);
-
-  if (isIndia) {
-    return { currency: "INR", price: "₹499", anchor: "₹799", checkoutUrl };
-  }
-
-  return { currency: "USD", price: "$19", anchor: "$24", checkoutUrl };
+  const currency: Currency = isIndia ? "INR" : "USD";
+  return {
+    currency,
+    ...displayForCurrency(currency),
+    checkoutUrl: dodoCheckoutUrl(country),
+  };
 }
