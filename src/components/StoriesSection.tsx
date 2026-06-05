@@ -8,8 +8,9 @@ import { useState } from "react";
 import { SectionWrap, Eyebrow } from "./Shared";
 import { STORIES } from "@/lib/stories";
 import { AC, AC2, TDK, TLT, MDK, MLT } from "@/lib/theme";
+import type { Pricing } from "@/lib/pricing";
 
-export function StoriesSection({ dark }: { dark: boolean }) {
+export function StoriesSection({ dark, pricing }: { dark: boolean; pricing: Pricing }) {
   const [activeStory, setActiveStory] = useState<number | null>(null);
 
   return (
@@ -37,12 +38,12 @@ export function StoriesSection({ dark }: { dark: boolean }) {
         Tap a story to preview it.
       </p>
 
-      <StoryModal story={activeStory} onClose={() => setActiveStory(null)} />
+      <StoryModal story={activeStory} onClose={() => setActiveStory(null)} price={pricing.price} />
     </SectionWrap>
   );
 }
 
-function StoryModal({ story, onClose }: { story: number | null; onClose: () => void }) {
+function StoryModal({ story, onClose, price }: { story: number | null; onClose: () => void; price: string }) {
   if (story == null) return null;
   const s = STORIES[story];
   return (
@@ -63,14 +64,14 @@ function StoryModal({ story, onClose }: { story: number | null; onClose: () => v
           <div className="modal-tease">
             <p>This story continues in your inbox.</p>
             <button className="cta-btn cta-btn--sm" onClick={onClose}>
-              Get Still at Nine — $19
+              Get Still at Nine — {price}
             </button>
           </div>
         ) : (
           <div className="modal-tease modal-tease--full">
             <p>This is one of 24 stories.</p>
             <button className="cta-btn cta-btn--sm" onClick={onClose}>
-              Get all 24 — $19
+              Get all 24 — {price}
             </button>
           </div>
         )}

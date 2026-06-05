@@ -26,8 +26,8 @@ export default async function LandingPage() {
       <Navbar />
       <HeroSection pricing={pricing} />
       <WhatYoullRead dark={isDark(1)} />
-      <StoriesSection dark={isDark(2)} />
-      <HowItWorks dark={isDark(3)} />
+      <StoriesSection dark={isDark(2)} pricing={pricing} />
+      <HowItWorks dark={isDark(3)} pricing={pricing} />
       <WhatThisIsNot dark={isDark(4)} />
       <EveryStoryIsReal dark={isDark(5)} />
       <FinalCTA dark={isDark(6)} pricing={pricing} />

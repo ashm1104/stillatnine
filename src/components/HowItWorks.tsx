@@ -2,12 +2,14 @@
 
 import { SectionWrap, Eyebrow } from "./Shared";
 import { AC, AC2, TDK, TLT, MDK, MLT, BDK, BLT, DK, LT } from "@/lib/theme";
+import type { Pricing } from "@/lib/pricing";
 
 const STEPS = [
   {
     num: "01",
     label: "Pay once, keep forever",
-    desc: "$19. No subscription, no renewal. The full collection is yours.",
+    // {price} is replaced with the geo-aware price at render time.
+    desc: "{price}. No subscription, no renewal. The full collection is yours.",
     icon: "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z",
   },
   {
@@ -30,7 +32,7 @@ const STEPS = [
   },
 ];
 
-export function HowItWorks({ dark }: { dark: boolean }) {
+export function HowItWorks({ dark, pricing }: { dark: boolean; pricing: Pricing }) {
   const acc = dark ? AC : AC2;
   const txt = dark ? TDK : TLT;
   const mut = dark ? MDK : MLT;
@@ -57,7 +59,7 @@ export function HowItWorks({ dark }: { dark: boolean }) {
               {step.label}
             </h3>
             <p className="how-step-desc" style={{ color: mut }}>
-              {step.desc}
+              {step.desc.replace("{price}", pricing.price)}
             </p>
             {i < STEPS.length - 1 && <div className="how-step-thread" style={{ background: acc }} />}
           </div>
