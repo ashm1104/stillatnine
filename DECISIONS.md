@@ -156,6 +156,23 @@ and can deliver story 1 & 2 back-to-back).
 - Cron caller authed by **`CRON_SECRET`** (renamed from `DELIVERY_CRON_SECRET`),
   set as a Supabase Edge Function secret.
 
+**Communicating the schedule** (resolves the "which nights?" friction — the
+trio is fixed per reader since 2+2+3=7, but they must be *told*). Surface it
+wherever we know the timezone:
+- **Welcome page:** "Your stories arrive **Tue, Thu & Sat** at 9 PM IST" —
+  computed server-side by `set-timezone` (it has `purchased_at` + the just-saved
+  tz) and returned to the page.
+- **Every story-email footer:** "You read on Tue · Thu · Sat. Next: Thursday at
+  9 PM" — the Edge Function knows the tz.
+- **Welcome email:** stays generic ("starting tonight, three nights a week") —
+  it's sent by the webhook *before* the timezone is captured.
+- **Landing page:** stays "three nights a week" (no need to name days to sell).
+
+Rejected: global Mon/Wed/Fri + instant story 1 — the first story becomes an
+exception that doesn't fit the recurring weekday rhythm (a hitch at the start).
+Per-user makes story 1 *the* anchor, so tonight and the recurring trio are the
+same thing.
+
 ## Still open / to lock
 - **Delivery days** — RESOLVED above (per-user anchored; no global weekdays).
 - **Physical mailing address** (Phase 6): placeholder `[123 Example Street…]`
