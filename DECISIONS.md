@@ -132,8 +132,31 @@ not a secret store. `users.dodo_payment_id` is a reference id, not a secret.
 
 ---
 
+## Phase 4 — Delivery schedule (decided, pre-build)
+
+**Model: per-user, anchored to the purchase night** — NOT the global Mon/Wed/Fri
+in the original plan (that breaks the locked "first story tonight at 9" promise
+and can deliver story 1 & 2 back-to-back).
+
+- **Story 1:** the night of purchase at **9 PM local**. If they bought *after*
+  9 PM local (missed the slot), story 1 is sent **immediately** — next cron run,
+  so ≤15 min — to honor "tonight."
+- **Stories 2–24:** 9 PM local on a repeating **2-2-3 day gap pattern** anchored
+  to the purchase date → exactly 3/week, never back-to-back. Day offset from the
+  purchase date for story `i` (1-based):
+  `offset = week*7 + [0,2,4][pos]`, where `week = floor((i-1)/3)` and
+  `pos = (i-1) % 3`. → 0, 2, 4, 7, 9, 11, 14, … ; story 24 lands at +53 days
+  (~7.5 weeks).
+- **Send window:** cron runs every 15 min; a story fires on the first run where
+  the user's local time is in the **9:00–9:15 PM** slot on/after its due date.
+  Story 1's immediate (after-9) case bypasses the window. Dedup via
+  `delivery_history` + `current_story`. **3 failures → abandon.** Skip
+  refunded/unsubscribed; require `timezone IS NOT NULL`.
+- **No schema change** — uses `purchased_at`, `timezone`, `current_story`.
+- Cron caller authed by **`CRON_SECRET`** (renamed from `DELIVERY_CRON_SECRET`),
+  set as a Supabase Edge Function secret.
+
 ## Still open / to lock
-- **Delivery days** (Phase 4): plan recommends **Mon/Wed/Fri** — confirm before
-  building the schedule logic.
+- **Delivery days** — RESOLVED above (per-user anchored; no global weekdays).
 - **Physical mailing address** (Phase 6): placeholder `[123 Example Street…]`
   still in the email footers (CAN-SPAM).
