@@ -293,13 +293,21 @@ built yet.
 
 ### Mailing address (blocker for emails)
 - Get a physical postal address for the email footer (CAN-SPAM / CASL). Owner is
-  an India-based sole proprietor, no office. **Chosen direction: a rented post
-  box** — e.g. **ePostBook** (epostbook.com, ~₹300/yr "Individual" plan) gives a
-  unique deliverable postal address; a P.O. Box or any CMRA-style address also
-  qualifies. Confirm the assigned address is real/deliverable (has a PIN code)
-  and keep it renewed (it lives in emails for months). Then replace the
-  `[123 Example Street, City, Country]` placeholder in **both**
-  `emails/story-template.html` and `emails/welcome-template.html`.
+  an India-based sole proprietor, no office. Needs one of: a street address, a
+  **P.O. Box registered with the postal service**, or a **CMRA** mailbox.
+- ⚠️ **ePostBook (epostbook.com) was investigated and REJECTED.** Despite the
+  "Unique Postal Address" marketing, the actual product is a **digital "PostBox
+  ID"** (e.g. "PostBox ID 1000") + a forwarding service — you give out the ID and
+  confirm a real address for them to forward to. It is NOT a standalone,
+  India-Post-deliverable street/PIN address, so it does not cleanly satisfy the
+  "valid physical postal address" requirement.
+- **Recommended: an India Post P.O. Box** (Post Box / Post Bag at a Head Post
+  Office), format "Post Box No. 123, [HPO], [City] – [PIN], India", ~₹1–2.5k/yr —
+  unambiguously a registered P.O. Box. A virtual office / CMRA with a real
+  street+PIN address also works (pricier).
+- Then replace the `[123 Example Street, City, Country]` placeholder in **both**
+  `emails/story-template.html` and `emails/welcome-template.html`, and keep the
+  box renewed (the address lives in inboxes for months).
 
 ### Deliverability testing (do LAST — only once emails are fully finished)
 Do not test piecemeal; send the *finished* emails. Order:
