@@ -112,6 +112,8 @@ export type Database = {
       users: {
         Row: {
           amount_paid: number
+          bounced: boolean
+          complained: boolean
           created_at: string | null
           currency: string
           current_story: number | null
@@ -125,6 +127,8 @@ export type Database = {
         }
         Insert: {
           amount_paid: number
+          bounced?: boolean
+          complained?: boolean
           created_at?: string | null
           currency: string
           current_story?: number | null
@@ -138,6 +142,8 @@ export type Database = {
         }
         Update: {
           amount_paid?: number
+          bounced?: boolean
+          complained?: boolean
           created_at?: string | null
           currency?: string
           current_story?: number | null

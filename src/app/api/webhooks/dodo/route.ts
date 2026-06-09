@@ -18,6 +18,7 @@ import type {
 import { createAdminClient } from "@/lib/supabase";
 import { getResend, RESEND_FROM, RESEND_REPLY_TO } from "@/lib/resend";
 import { renderWelcomeEmail, WELCOME_SUBJECT } from "@/lib/welcome-email";
+import { createToken } from "@/lib/token";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -131,9 +132,10 @@ async function handlePaymentSucceeded(payment: Payment) {
 
 async function sendWelcomeEmail(email: string, userId: string) {
   const html = renderWelcomeEmail({
-    // Manage/unsubscribe routes land in Phase 5; keep stable, identifiable URLs.
+    // No /manage page yet — point at the welcome receipt for now.
     manageUrl: `${SITE_URL}/welcome`,
-    unsubscribeUrl: `${SITE_URL}/api/unsubscribe?u=${userId}`,
+    // Signed token, not a raw id — see lib/token.
+    unsubscribeUrl: `${SITE_URL}/api/unsubscribe?token=${createToken(userId)}`,
   });
 
   try {

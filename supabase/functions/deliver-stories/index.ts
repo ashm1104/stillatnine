@@ -15,6 +15,7 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY")!;
 const CRON_SECRET = Deno.env.get("CRON_SECRET")!;
+const TOKEN_SECRET = Deno.env.get("UNSUBSCRIBE_TOKEN_SECRET")!;
 const SITE_URL = (Deno.env.get("SITE_URL") ?? "https://stillatnine.com").replace(/\/$/, "");
 const FROM = "Still at Nine <stories@stillatnine.com>";
 const REPLY_TO = "hello@stillatnine.com";
@@ -88,13 +89,37 @@ function isDue(user: User, now: Date): { due: boolean; storyNo: number; weekday:
 }
 
 // ---------------------------------------------------------------------------
+// Signed management tokens
+// ---------------------------------------------------------------------------
+
+/**
+ * `<userId>.<sig>` token for unsubscribe links — the no-login credential.
+ * Mirrors src/lib/token.ts on the Vercel side (base64url HMAC-SHA256, no
+ * padding); the two MUST stay in sync so /api/unsubscribe can verify these.
+ */
+async function unsubscribeToken(userId: string): Promise<string> {
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(TOKEN_SECRET),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  );
+  const mac = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(userId));
+  let bin = "";
+  for (const b of new Uint8Array(mac)) bin += String.fromCharCode(b);
+  const b64url = btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  return `${userId}.${b64url}`;
+}
+
+// ---------------------------------------------------------------------------
 // Sending + logging
 // ---------------------------------------------------------------------------
 
 async function sendStory(supabase: SupabaseClient, user: User, story: Story, weekday: string) {
   const dateLabel = `${weekday}, 9:00 PM`;
   const manageUrl = `${SITE_URL}/manage?u=${user.id}`;
-  const unsubUrl = `${SITE_URL}/api/unsubscribe?u=${user.id}`;
+  const unsubUrl = `${SITE_URL}/api/unsubscribe?token=${await unsubscribeToken(user.id)}`;
   const html = buildEmail(story, dateLabel, manageUrl, unsubUrl);
 
   const res = await fetch("https://api.resend.com/emails", {
@@ -182,6 +207,8 @@ Deno.serve(async (req) => {
     .select("id, email, timezone, purchased_at, current_story")
     .eq("refunded", false)
     .eq("unsubscribed", false)
+    .eq("bounced", false)
+    .eq("complained", false)
     .not("timezone", "is", null)
     .lt("current_story", TOTAL_STORIES);
 

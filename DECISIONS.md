@@ -197,15 +197,67 @@ same thing.
 
 ---
 
-## Phase 5 — next up (not started)
-Token-based, no-login (see "Identity model" above):
-- `/manage?token=…` page — change timezone / pause / resubscribe.
-- `/unsubscribe?token=…` page + the `/api/unsubscribe` route (the story &
-  welcome emails currently link to placeholder `…?u=<userId>` URLs — replace
-  with signed tokens).
-- **Resend bounce/complaint webhook** (`/api/webhooks/resend`) — flag dead
-  addresses (the email-typo safety net's automated half).
-- Remaining transactional pages: `/unsubscribed`, 404 (`not-found.tsx`),
-  `loading.tsx`. (`/error` already built in Phase 3.)
-- Refund handling already lives in the Dodo webhook (`refund.succeeded` →
-  `refunded = true`).
+## Phase 5 — Supporting flows + transactional pages (BUILT)
+
+Token-based, no-login (see "Identity model" above).
+
+### Signed tokens (as built)
+- New `src/lib/token.ts`: a token is **`<userId>.<sig>`**, sig =
+  base64url(HMAC-SHA256(userId, `UNSUBSCRIBE_TOKEN_SECRET`)), no padding.
+  `createToken` / `verifyToken` (constant-time compare). The token *is* the
+  credential — no raw guessable id in the URL, no password.
+- The **same scheme is reimplemented in the delivery Edge Function** (Deno, Web
+  Crypto `crypto.subtle`) so story-email unsubscribe links verify. The two impls
+  MUST stay byte-identical (base64url, no `=` padding).
+- ⚠️ **`UNSUBSCRIBE_TOKEN_SECRET` must be set in BOTH Vercel and Supabase Edge
+  Function secrets** (same value). Until it's set in Supabase, story sends will
+  throw when building the unsub link. Generate: `openssl rand -hex 32`.
+- Replaced the old placeholder `…/api/unsubscribe?u=<userId>` in the Dodo
+  webhook (welcome email) and the Edge Function (story emails) with
+  `?token=<signed>`.
+
+### Unsubscribe / resubscribe
+- **`GET /api/unsubscribe?token=…`** (`nodejs`): verify → `unsubscribed = true`
+  via service-role JS client → **302 redirect to `/unsubscribed?token=…`**
+  (carries the token forward). Bad/missing token still lands on `/unsubscribed`
+  but flips nothing, so a link-scanner prefetch of a malformed URL is inert. A
+  DB error still redirects (optimistic) rather than 500 a clicking reader.
+- **`POST /api/resubscribe`** (new — the design's "Light it again" needs a real
+  endpoint): verify token → `unsubscribed = false`, returns JSON. The
+  `/unsubscribed` page POSTs the token and flips to the "welcome back" state
+  in place. No token on the page ⇒ button hidden (graceful), confirmation still
+  shown.
+
+### Resend (Svix) webhook — `/api/webhooks/resend` (`nodejs`)
+- **Manual Svix verification** (no `svix` dep): HMAC-SHA256 over
+  `${svix-id}.${svix-timestamp}.${rawBody}`, key = base64-decoded secret after
+  `whsec_`; constant-time compare against each `v1,<sig>` in `svix-signature`;
+  ±5-min timestamp window for replay defense. Secret = `RESEND_WEBHOOK_SECRET`.
+- `email.bounced` → `bounced = true`; `email.complained` → `complained = true`
+  (matched by recipient email in `data.to`). `email.opened` → stamp
+  `delivery_history.opened_at` (matched by `data.email_id` = `resend_id`, first
+  open only). Everything else acked with 200.
+
+### Schema change (this phase)
+- Added `users.bounced` + `users.complained` (`boolean NOT NULL DEFAULT false`)
+  — the bounce/complaint flags are distinct from a voluntary `unsubscribed`.
+  The delivery Edge Function query now also filters
+  `.eq("bounced", false).eq("complained", false)` (redeployed, v4). Types
+  regenerated.
+
+### Transactional pages — ported from `tx-app.jsx`
+- `/unsubscribed` (client, reads `?token`, resubscribe button), `not-found.tsx`
+  (404), `loading.tsx` (breathing-lamp Suspense fallback). `/error` was already
+  built in Phase 3. All reuse `TxChrome` (Atmosphere/Brand/Footer) +
+  `transactional.css`.
+
+### Refunds
+- Already handled in the Dodo webhook (`refund.succeeded` → `refunded = true`,
+  Phase 3) — no change.
+
+### Still deferred (NOT built — were never in this task's scope)
+- `/manage?token=…` page (change timezone / pause). Story & welcome emails'
+  **"Manage delivery"** link still points at `…/manage?u=<userId>` (Edge) /
+  `/welcome` (welcome email) and 404s — build when /manage lands.
+- `RESEND_WEBHOOK_SECRET` + `UNSUBSCRIBE_TOKEN_SECRET` must be added in
+  Vercel (both) and Supabase (the token one) before launch.
