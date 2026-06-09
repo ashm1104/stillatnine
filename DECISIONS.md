@@ -283,3 +283,58 @@ Token-based, no-login (see "Identity model" above).
   missing mailing address will dock the score until the line above is resolved.
 - Phase 6 site content (SEO basics, FAQ section, Privacy Policy, Terms) —
   to be picked up in Phase 6, not now.
+
+---
+
+## Phase 6 — pre-launch hardening (TODO — not started)
+
+The canonical checklist for the final pass before going live. Nothing here is
+built yet.
+
+### Mailing address (blocker for emails)
+- Get a physical postal address for the email footer (CAN-SPAM / CASL). Owner is
+  an India-based sole proprietor, no office. **Chosen direction: a rented post
+  box** — e.g. **ePostBook** (epostbook.com, ~₹300/yr "Individual" plan) gives a
+  unique deliverable postal address; a P.O. Box or any CMRA-style address also
+  qualifies. Confirm the assigned address is real/deliverable (has a PIN code)
+  and keep it renewed (it lives in emails for months). Then replace the
+  `[123 Example Street, City, Country]` placeholder in **both**
+  `emails/story-template.html` and `emails/welcome-template.html`.
+
+### Deliverability testing (do LAST — only once emails are fully finished)
+Do not test piecemeal; send the *finished* emails. Order:
+1. **mail-tester.com** (free, first) — it gives a one-time address; send the
+   welcome email AND a story email to it. Returns a 0–10 score + exactly what's
+   wrong: SPF/DKIM/DMARC alignment, spammy content, and **the missing physical
+   address** (so the mailing-address item above must be done first). Fix until
+   ~9–10/10.
+2. **Seed inboxes you control** — send to a **Gmail**, an **Outlook/Hotmail**,
+   and an **Apple iCloud** account. Per inbox check: (a) Inbox vs Promotions vs
+   Spam, (b) renders correctly, (c) **dark mode** renders (open in Apple Mail
+   dark + Gmail app dark — the template has dark-mode hooks to verify).
+3. **Google Postmaster Tools** — set up at/after launch to watch domain
+   reputation + spam-complaint rate once there's real volume.
+- Note: SPF/DKIM/DMARC + verified Resend domain were already done in Phase 0, so
+  this is mostly verification. The **address (above)** and **unsubscribe link
+  (done)** are direct inputs to the spam score — deliverability and the legal
+  footer are the same fight. Quick version: mail-tester + 3 seed inboxes catches
+  ~95% of issues.
+
+### Site content
+- **Privacy Policy** + **Terms** pages (`/privacy`, `/terms`) — tailored to: no
+  accounts, email + timezone only, Dodo as Merchant of Record, Resend + Supabase
+  as sub-processors, refund policy, no data resale. (Not legal advice; draft to
+  be reviewed.)
+- **FAQ** — landing section (kills purchase objections + long-tail SEO).
+- **SEO basics** — `<title>` + meta description, OG/Twitter tags (images exist),
+  `robots.txt` + `sitemap.xml`, semantic headings, font preloading.
+
+### Other pre-launch
+- Error boundary, Lighthouse pass.
+- **Switch Dodo to live mode** (live product IDs + checkout host) then
+  **redeploy** (`NEXT_PUBLIC_DODO_*` are baked at build time).
+- **Wipe test data** (test purchases + their `delivery_history`).
+- Seed stories **3–24** (only 1 & 2 exist) — without them, delivery stalls after
+  story 2.
+- Optional polish: personalise story-email footer "The next arrives **Thursday**
+  at 9 PM" (small Edge Function change).
