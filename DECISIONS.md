@@ -255,9 +255,31 @@ Token-based, no-login (see "Identity model" above).
 - Already handled in the Dodo webhook (`refund.succeeded` → `refunded = true`,
   Phase 3) — no change.
 
-### Still deferred (NOT built — were never in this task's scope)
-- `/manage?token=…` page (change timezone / pause). Story & welcome emails'
-  **"Manage delivery"** link still points at `…/manage?u=<userId>` (Edge) /
-  `/welcome` (welcome email) and 404s — build when /manage lands.
-- `RESEND_WEBHOOK_SECRET` + `UNSUBSCRIBE_TOKEN_SECRET` must be added in
-  Vercel (both) and Supabase (the token one) before launch.
+### "Manage delivery" link — DROPPED for launch (decided)
+- The `/manage` page is **deferred** (no login; would offer change-timezone /
+  pause / progress). Decision: **don't build it now** — instead the
+  **"Manage delivery" link was removed entirely from both emails**, leaving only
+  **Unsubscribe**. Removed from: `emails/story-template.html`,
+  `emails/welcome-template.html`, `render.ts` `buildEmail` (param dropped),
+  `lib/welcome-email.ts` (`manageUrl` arg dropped), the Dodo webhook, and
+  `scripts/preview-story.ts`. Edge Function redeployed (v6).
+- **If/when audience grows → build the full `/manage` page** (signed-token like
+  unsubscribe: change delivery timezone, pause/resume, show progress) and
+  re-add the link. Until then, a wrong-timezone reader just replies (reaches a
+  person) and we fix the one DB field by hand.
+
+### Pre-launch (carried forward)
+- `RESEND_WEBHOOK_SECRET` + `UNSUBSCRIBE_TOKEN_SECRET`: **set in Vercel (both)
+  and Supabase (the token one). DONE & verified** (unsubscribe round-trip +
+  bounce/complaint webhook tested on prod 2026-06-09). `CRON_SECRET` rotated.
+- **Mailing address** (CAN-SPAM / CASL): footer placeholder
+  `[123 Example Street…]` still in both emails. Owner is an India-based sole
+  proprietor with no office — needs a P.O. Box / virtual mailing address before
+  real sends. OPEN (under discussion).
+- **Deliverability testing**: deliberately deferred to the **very end** — run
+  the *fully finished* welcome + story emails through **mail-tester.com**
+  (target ~9–10/10) + seed Gmail/Outlook/iCloud inboxes (placement + light/dark
+  render), then Google Postmaster Tools at launch. Do NOT test piecemeal; the
+  missing mailing address will dock the score until the line above is resolved.
+- Phase 6 site content (SEO basics, FAQ section, Privacy Policy, Terms) —
+  to be picked up in Phase 6, not now.

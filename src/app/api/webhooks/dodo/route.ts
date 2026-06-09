@@ -132,9 +132,8 @@ async function handlePaymentSucceeded(payment: Payment) {
 
 async function sendWelcomeEmail(email: string, userId: string) {
   const html = renderWelcomeEmail({
-    // No /manage page yet — point at the welcome receipt for now.
-    manageUrl: `${SITE_URL}/welcome`,
-    // Signed token, not a raw id — see lib/token.
+    // Signed token, not a raw id — see lib/token. (No "manage" link: deferred
+    // until there's a /manage page — see DECISIONS.md.)
     unsubscribeUrl: `${SITE_URL}/api/unsubscribe?token=${createToken(userId)}`,
   });
 

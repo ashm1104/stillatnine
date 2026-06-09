@@ -118,9 +118,8 @@ async function unsubscribeToken(userId: string): Promise<string> {
 
 async function sendStory(supabase: SupabaseClient, user: User, story: Story, weekday: string) {
   const dateLabel = `${weekday}, 9:00 PM`;
-  const manageUrl = `${SITE_URL}/manage?u=${user.id}`;
   const unsubUrl = `${SITE_URL}/api/unsubscribe?token=${await unsubscribeToken(user.id)}`;
-  const html = buildEmail(story, dateLabel, manageUrl, unsubUrl);
+  const html = buildEmail(story, dateLabel, unsubUrl);
 
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",

@@ -15,8 +15,7 @@ const story = JSON.parse(readFileSync(file, "utf8")) as Story;
 const html = buildEmail(
   story,
   "Wednesday, 9:00 PM",
-  "https://stillatnine.com/manage?u=preview",
-  "https://stillatnine.com/api/unsubscribe?u=preview",
+  "https://stillatnine.com/api/unsubscribe?token=preview",
 );
 
 const out = path.join(process.cwd(), "public", "_story-preview.html");

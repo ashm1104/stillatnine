@@ -66,7 +66,7 @@ function renderSources(sources: Source[] | null, disclaimer: string | null): str
 }
 
 /** Assemble the full story email HTML. */
-export function buildEmail(story: Story, dateLabel: string, manageUrl: string, unsubUrl: string): string {
+export function buildEmail(story: Story, dateLabel: string, unsubUrl: string): string {
   const n = story.story_number;
   const category = story.category ?? "Still at Nine";
   const readMins = story.read_minutes ?? 6;
@@ -165,8 +165,6 @@ ${renderBlocks(story.content_blocks)}
     <span class="es-h" style="font-family:'Playfair Display',Georgia,serif;font-weight:600;font-size:16px;color:#F0E9DC;letter-spacing:-0.01em;margin-left:9px;vertical-align:middle;">Still at Nine</span>
     <p class="es-mut" style="margin:16px 0 0;font-family:'Spectral',Georgia,serif;font-style:italic;font-size:14px;line-height:1.6;color:#9C8E78;">You&rsquo;ve just read story ${n} of ${TOTAL_STORIES}. ${nextLine}</p>
     <p class="es-mut" style="margin:22px 0 0;font-family:'Spectral SC','Spectral',Georgia,serif;font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:#9C8E78;">
-      <a href="${esc(manageUrl)}" class="es-acc" style="color:#D8A24C;text-decoration:none;">Manage delivery</a>
-      <span style="color:#9C8E78;margin:0 10px;">&middot;</span>
       <a href="${esc(unsubUrl)}" class="es-acc" style="color:#D8A24C;text-decoration:none;">Unsubscribe</a>
     </p>
     <p class="es-mut" style="margin:20px 0 0;font-family:'Spectral',Georgia,serif;font-size:12px;line-height:1.6;color:#6E624E;">Still at Nine &middot; [123 Example Street, City, Country]<br>You&rsquo;re receiving this because you purchased the Still at Nine collection.</p>
