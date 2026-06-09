@@ -132,7 +132,7 @@ not a secret store. `users.dodo_payment_id` is a reference id, not a secret.
 
 ---
 
-## Phase 4 — Delivery schedule (decided, pre-build)
+## Phase 4 — Delivery schedule (BUILT & LIVE)
 
 **Model: per-user, anchored to the purchase night** — NOT the global Mon/Wed/Fri
 in the original plan (that breaks the locked "first story tonight at 9" promise
@@ -147,23 +147,38 @@ and can deliver story 1 & 2 back-to-back).
   `offset = week*7 + [0,2,4][pos]`, where `week = floor((i-1)/3)` and
   `pos = (i-1) % 3`. → 0, 2, 4, 7, 9, 11, 14, … ; story 24 lands at +53 days
   (~7.5 weeks).
-- **Send window:** cron runs every 15 min; a story fires on the first run where
-  the user's local time is in the **9:00–9:15 PM** slot on/after its due date.
-  Story 1's immediate (after-9) case bypasses the window. Dedup via
-  `delivery_history` + `current_story`. **3 failures → abandon.** Skip
+- **Send window (as built):** cron every 15 min; a scheduled story fires on the
+  first run where the user's local time is in the **evening (hour ≥ 21, i.e.
+  9 PM–midnight)** on/after its due date — so a missed 9 PM slot still goes out
+  that evening, otherwise the next evening. Story 1's immediate (after-9) case
+  bypasses the gate. **≤1 story per user per local day** (guarded by the latest
+  `delivery_history.sent_at`). **3 failures → abandon** + skip the story. Skip
   refunded/unsubscribed; require `timezone IS NOT NULL`.
 - **No schema change** — uses `purchased_at`, `timezone`, `current_story`.
 - Cron caller authed by **`CRON_SECRET`** (renamed from `DELIVERY_CRON_SECRET`),
   set as a Supabase Edge Function secret.
 
+**Shipped & verified.** Edge Function `supabase/functions/deliver-stories`
+(deployed via Supabase MCP; HTML renderer in `render.ts`, shared with the local
+preview `scripts/preview-story.ts`). Triggered by cron-job.org (POST +
+`Authorization: Bearer CRON_SECRET`). Tested end-to-end: real send, correct
+`delivery_history` + `current_story`, idempotent no-op on re-run. Content
+pipeline: format `content/README.md`, importer `scripts/import-story.ts`,
+structuring-agent prompt `content/structuring-agent.md`; stories 1 & 2 seeded.
+⚠️ `CRON_SECRET` was shared in chat during testing — rotate before launch.
+
 **Communicating the schedule** (resolves the "which nights?" friction — the
 trio is fixed per reader since 2+2+3=7, but they must be *told*). Surface it
 wherever we know the timezone:
-- **Welcome page:** "Your stories arrive **Tue, Thu & Sat** at 9 PM IST" —
-  computed server-side by `set-timezone` (it has `purchased_at` + the just-saved
-  tz) and returned to the page.
-- **Every story-email footer:** "You read on Tue · Thu · Sat. Next: Thursday at
-  9 PM" — the Edge Function knows the tz.
+- **Welcome page (SHIPPED):** "Your stories arrive **Tuesdays, Thursdays &
+  Saturdays** at 9 PM IST", plus bullet 1 "…then every Tue, Thu & Sat".
+  `set-timezone` computes the trio from `purchased_at` + the just-saved tz and
+  returns `nights[]`; the page renders it (falls back to "three nights a week"
+  until the order resolves).
+- **Story-email footer (PENDING):** currently generic "The next arrives at
+  9 PM." Personalising to the next weekday ("The next arrives Thursday at 9 PM")
+  is a small Edge Function follow-up — compute the next due weekday in
+  `index.ts` and pass it to `buildEmail`.
 - **Welcome email:** stays generic ("starting tonight, three nights a week") —
   it's sent by the webhook *before* the timezone is captured.
 - **Landing page:** stays "three nights a week" (no need to name days to sell).
@@ -175,5 +190,22 @@ same thing.
 
 ## Still open / to lock
 - **Delivery days** — RESOLVED above (per-user anchored; no global weekdays).
+- **Story-email footer weekday** — small pending Edge Function polish (above).
+- **Rotate `CRON_SECRET`** before launch (shared in chat during testing).
 - **Physical mailing address** (Phase 6): placeholder `[123 Example Street…]`
   still in the email footers (CAN-SPAM).
+
+---
+
+## Phase 5 — next up (not started)
+Token-based, no-login (see "Identity model" above):
+- `/manage?token=…` page — change timezone / pause / resubscribe.
+- `/unsubscribe?token=…` page + the `/api/unsubscribe` route (the story &
+  welcome emails currently link to placeholder `…?u=<userId>` URLs — replace
+  with signed tokens).
+- **Resend bounce/complaint webhook** (`/api/webhooks/resend`) — flag dead
+  addresses (the email-typo safety net's automated half).
+- Remaining transactional pages: `/unsubscribed`, 404 (`not-found.tsx`),
+  `loading.tsx`. (`/error` already built in Phase 3.)
+- Refund handling already lives in the Dodo webhook (`refund.succeeded` →
+  `refunded = true`).

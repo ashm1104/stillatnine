@@ -13,11 +13,20 @@ import { displayForCurrency } from "@/lib/pricing";
 import { Atmosphere, Brand, Footer } from "@/components/TxChrome";
 import "@/styles/transactional.css";
 
-type Order = { currency?: string | null; email?: string | null };
+type Order = { currency?: string | null; email?: string | null; nights?: string[] | null };
+
+/** "Sunday, Tuesday & Thursday" (or pluralised: "Sundays, Tuesdays & Thursdays"). */
+function formatNights(nights?: string[] | null, plural = false): string | null {
+  if (!nights || nights.length < 3) return null;
+  const n = plural ? nights.map((d) => `${d}s`) : nights;
+  return `${n[0]}, ${n[1]} & ${n[2]}`;
+}
 
 function ThankYou({ order, tzLabel }: { order?: Order | null; tzLabel?: string | null }) {
   const currency = order?.currency;
   const email = order?.email;
+  const nightsEvery = formatNights(order?.nights); // for "every Sunday, Tuesday & Thursday"
+  const nightsPlural = formatNights(order?.nights, true); // for "arrive Sundays, …"
   const { price, anchor } = displayForCurrency(currency);
   const nineLabel = tzLabel ? `9 PM ${tzLabel}` : "9 PM";
 
@@ -33,12 +42,19 @@ function ThankYou({ order, tzLabel }: { order?: Order | null; tzLabel?: string |
           <div className="tx-underscore" />
           <p className="tx-tagline">The lamp is lit. Your first story arrives tonight at 9.</p>
 
+          {/* The reader's three delivery nights — answers "which nights?" up
+              front (see DECISIONS.md). */}
+          {nightsPlural && (
+            <p className="tx-confirm">
+              Your stories arrive <b>{nightsPlural}</b> at {nineLabel}.
+            </p>
+          )}
+
           {/* Delivery-email confirmation, surfaced high so it's seen without
               scrolling — the buyer's typo safety net. */}
           {email && (
             <p className="tx-confirm">
-              Your stories are headed to{" "}
-              <b>{email}</b>. Not you? Write to us at{" "}
+              Headed to <b>{email}</b>. Not you? Write to us at{" "}
               <a href="mailto:hello@stillatnine.com">hello@stillatnine.com</a>.
             </p>
           )}
@@ -66,7 +82,7 @@ function ThankYou({ order, tzLabel }: { order?: Order | null; tzLabel?: string |
             <ul className="tx-steps">
               <li className="tx-step">
                 <span className="tx-step-ic">1</span>
-                <span className="tx-step-txt">Your first story lands <b>tonight at {nineLabel}</b>, then three nights a week.</span>
+                <span className="tx-step-txt">Your first story lands <b>tonight at {nineLabel}</b>, {nightsEvery ? <>then every <b>{nightsEvery}</b>.</> : "then three nights a week."}</span>
               </li>
               <li className="tx-step">
                 <span className="tx-step-ic">2</span>
@@ -130,7 +146,7 @@ function useCaptureTimezone(onOrder: (order: Order) => void, enabled: boolean) {
           if (res.status === 200) {
             const body = await res.json().catch(() => null);
             if (body && !cancelled) {
-              onOrder({ currency: body.currency, email: body.email });
+              onOrder({ currency: body.currency, email: body.email, nights: body.nights });
             }
             return; // saved
           }

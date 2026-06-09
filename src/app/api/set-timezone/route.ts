@@ -20,6 +20,23 @@ function isValidTimeZone(tz: string): boolean {
   }
 }
 
+const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+/**
+ * The reader's three delivery nights. The schedule is anchored to the purchase
+ * weekday (story 1), then the 2-2-3 day pattern lands on weekday, +2, +4 — a
+ * fixed trio. See DECISIONS.md (Phase 4 delivery schedule).
+ */
+function deliveryNights(purchasedAtIso: string | null, tz: string): string[] {
+  if (!purchasedAtIso) return [];
+  const name = new Intl.DateTimeFormat("en-US", { timeZone: tz, weekday: "long" }).format(
+    new Date(purchasedAtIso),
+  );
+  const i = WEEKDAYS.indexOf(name);
+  if (i < 0) return [];
+  return [i, (i + 2) % 7, (i + 4) % 7].map((k) => WEEKDAYS[k]);
+}
+
 export async function POST(req: NextRequest) {
   let body: unknown;
   try {
@@ -48,7 +65,7 @@ export async function POST(req: NextRequest) {
     .from("users")
     .update({ timezone: tz })
     .eq("dodo_payment_id", id)
-    .select("currency, email");
+    .select("currency, email, purchased_at");
 
   if (error) {
     console.error("[set-timezone] update failed:", error);
@@ -61,11 +78,17 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, found: false }, { status: 202 });
   }
 
-  // Return the order so /welcome can show the paid currency and let the buyer
-  // confirm the delivery email (typo safety net — sourced from the DB, not the
-  // URL, so we don't depend on the email param Dodo puts in the redirect).
+  // Return the order so /welcome can show the paid currency, confirm the
+  // delivery email (typo safety net), and tell the reader their three nights —
+  // all sourced from the DB, not the URL.
   return NextResponse.json(
-    { ok: true, found: true, currency: row.currency, email: row.email },
+    {
+      ok: true,
+      found: true,
+      currency: row.currency,
+      email: row.email,
+      nights: deliveryNights(row.purchased_at, tz),
+    },
     { status: 200 },
   );
 }
