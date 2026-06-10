@@ -274,8 +274,14 @@ Token-based, no-login (see "Identity model" above).
   bounce/complaint webhook tested on prod 2026-06-09). `CRON_SECRET` rotated.
 - **Mailing address** (CAN-SPAM / CASL): footer placeholder
   `[123 Example Street…]` still in both emails. Owner is an India-based sole
-  proprietor with no office — needs a P.O. Box / virtual mailing address before
-  real sends. OPEN (under discussion).
+  proprietor; **sourcing a real address (~1–2 days)** — a **home address is an
+  acceptable free interim** (fully compliant), swap to a P.O. Box later if the
+  owner wants it off public display. ePostBook rejected (see Phase 6). The
+  address is only legally required before emailing **real** buyers; the
+  placeholder is fine for dev/testing to your own inboxes. India itself has no
+  email-footer law (TRAI rules cover SMS/calls; DPDP'23 is data/consent) — but
+  the requirement follows the **reader's** country, and the product sells
+  globally, so US/Canada readers trigger CAN-SPAM/CASL regardless.
 - **Deliverability testing**: deliberately deferred to the **very end** — run
   the *fully finished* welcome + story emails through **mail-tester.com**
   (target ~9–10/10) + seed Gmail/Outlook/iCloud inboxes (placement + light/dark
@@ -337,12 +343,56 @@ Do not test piecemeal; send the *finished* emails. Order:
 - **SEO basics** — `<title>` + meta description, OG/Twitter tags (images exist),
   `robots.txt` + `sitemap.xml`, semantic headings, font preloading.
 
+### Email headers & one-click unsubscribe (NEW — not built)
+- **`List-Unsubscribe` + `List-Unsubscribe-Post` headers** are NOT set yet. Today
+  the emails only carry a *visible* Unsubscribe link. Gmail/Yahoo bulk-sender
+  rules (Feb 2024) want **one-click unsubscribe (RFC 8058)** for senders
+  >5,000/day; below that it's strongly recommended and helps inbox placement.
+  - Add the headers to both sends: the Edge Function `fetch` to Resend (story
+    emails) and the Dodo-webhook welcome send, e.g.
+    `List-Unsubscribe: <https://stillatnine.com/api/unsubscribe?token=…>` and
+    `List-Unsubscribe-Post: List-Unsubscribe=One-Click`.
+  - One-click sends an HTTP **POST** to that URL, but `/api/unsubscribe` is
+    **GET-only** today → **add a POST handler** (same token verify → set
+    `unsubscribed = true`, return 200). Keep the GET for the visible link.
+- **GET-unsubscribe prefetch hardening (consider):** the visible link is a GET
+  that mutates. Aggressive corporate **email security scanners can pre-click**
+  links and unsubscribe someone who never clicked. Mitigations to weigh: rely on
+  the `List-Unsubscribe-Post` (POST) path as the primary mechanism, and/or add a
+  lightweight confirm step on the visible link. Low probability at this audience;
+  documented so it's a conscious choice.
+
 ### Other pre-launch
 - Error boundary, Lighthouse pass.
 - **Switch Dodo to live mode** (live product IDs + checkout host) then
   **redeploy** (`NEXT_PUBLIC_DODO_*` are baked at build time).
-- **Wipe test data** (test purchases + their `delivery_history`).
+- **Wipe test data** (test purchases + their `delivery_history`; e.g. the
+  `aayush11aug@gmail.com` test account).
 - Seed stories **3–24** (only 1 & 2 exist) — without them, delivery stalls after
-  story 2.
+  story 2. This is the main *content* gate; pipeline already exists
+  (`content/README.md` → `content/structuring-agent.md` → `scripts/import-story.ts`).
 - Optional polish: personalise story-email footer "The next arrives **Thursday**
   at 9 PM" (small Edge Function change).
+- **Keep cron-job.org enabled** — delivery only runs while it POSTs the Edge
+  Function every 15 min. (Story 1 & 2 verified delivering at 9 PM local.)
+
+---
+
+## Parked / deferred (decided NOT to do now — revisit later)
+
+Conscious "not now" calls, so a future session doesn't rebuild them by mistake:
+
+- **Email open & click tracking** — revisit later (not now). Requires a verified
+  **tracking subdomain** `links.stillatnine.com` (+ a CNAME in Cloudflare);
+  Resend serves the open-pixel *and* click-redirects through it. Note: the
+  dashboard's "New tracking subdomain" wizard **forces click tracking on** to
+  create the subdomain — to run open-only you'd create it (click checked), verify
+  DNS, then toggle click off in Configuration (or via API `openTracking:true,
+  clickTracking:false`). Caveats: open numbers are inaccurate (Apple Mail Privacy
+  Protection / image proxies); click tracking **wraps every link incl.
+  Unsubscribe** through the subdomain. The `email.opened` → `opened_at` webhook
+  handler is already built and will populate once tracking is enabled.
+- **`/manage` page** — deferred until audience grows (see Phase 5 section). Link
+  already removed from emails; a wrong-timezone reader replies and we fix the DB
+  field by hand for now.
+- **Full timezone self-service / pause** — part of the future `/manage` page.
