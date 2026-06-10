@@ -292,10 +292,35 @@ Token-based, no-login (see "Identity model" above).
 
 ---
 
-## Phase 6 — pre-launch hardening (TODO — not started)
+## Phase 6 — pre-launch hardening (IN PROGRESS)
 
-The canonical checklist for the final pass before going live. Nothing here is
-built yet.
+The canonical checklist for the final pass before going live.
+
+### Track A — code-only hardening (BUILT 2026-06-11)
+Shipped to `master` (commit `5b6aa74`); Vercel auto-deployed. Zero dependencies —
+done ahead of the owner-driven items.
+- **One-click unsubscribe (RFC 8058).** `/api/unsubscribe` now has a **POST**
+  handler (Gmail/Apple Mail's native button POSTs in the background, expects a
+  bare 200) alongside the existing GET (visible link → redirect to
+  `/unsubscribed`). Both share one `unsubscribe()` helper; token rides the query
+  string in both cases. Added `List-Unsubscribe: <…/api/unsubscribe?token=…>` +
+  `List-Unsubscribe-Post: List-Unsubscribe=One-Click` headers to **both** sends:
+  the welcome email (Resend SDK `headers` in the Dodo webhook) and story emails
+  (Resend REST `headers` in the delivery Edge Function). **Edge Function
+  redeployed v8** (`verify_jwt` stays false — custom CRON_SECRET auth).
+- **SEO `robots.txt` + `sitemap.xml`** via typed `app/robots.ts` + `app/sitemap.ts`.
+  robots: allow `/`, disallow `/api/` + `/welcome` + `/unsubscribed` + `/error`,
+  point to sitemap. sitemap: landing only for now — **add `/privacy` + `/terms`
+  here when Track B ships.** (Page-level `<title>`/OG/Twitter were already done.)
+- **Error boundaries:** `app/error.tsx` (brand-styled via `TxChrome`, "Try again"
+  calls `reset()`; distinct from the payment-failure `/error` page) and
+  `app/global-error.tsx` (self-contained inline-styled root fallback for when the
+  root layout itself throws — no layout fonts/CSS available there).
+- Verified: `tsc --noEmit` clean + `next build` green (robots/sitemap emit as
+  static routes).
+- **Deferred within Track A:** the optional story-footer weekday personalisation
+  ("The next arrives Thursday at 9 PM") — still generic "The next arrives at
+  9 PM." Small Edge Function change, not done.
 
 ### Mailing address (blocker for emails)
 - Get a physical postal address for the email footer (CAN-SPAM / CASL). Owner is
