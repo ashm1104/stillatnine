@@ -130,6 +130,12 @@ async function sendStory(supabase: SupabaseClient, user: User, story: Story, wee
       reply_to: REPLY_TO,
       subject: story.subject_line ?? story.title,
       html,
+      // RFC 8058 one-click unsubscribe — surfaces Gmail/Apple Mail's native
+      // "Unsubscribe" button and is a direct inbox-placement signal.
+      headers: {
+        "List-Unsubscribe": `<${unsubUrl}>`,
+        "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+      },
     }),
   });
 

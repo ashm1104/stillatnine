@@ -131,11 +131,10 @@ async function handlePaymentSucceeded(payment: Payment) {
 }
 
 async function sendWelcomeEmail(email: string, userId: string) {
-  const html = renderWelcomeEmail({
-    // Signed token, not a raw id — see lib/token. (No "manage" link: deferred
-    // until there's a /manage page — see DECISIONS.md.)
-    unsubscribeUrl: `${SITE_URL}/api/unsubscribe?token=${createToken(userId)}`,
-  });
+  // Signed token, not a raw id — see lib/token. (No "manage" link: deferred
+  // until there's a /manage page — see DECISIONS.md.)
+  const unsubscribeUrl = `${SITE_URL}/api/unsubscribe?token=${createToken(userId)}`;
+  const html = renderWelcomeEmail({ unsubscribeUrl });
 
   try {
     const { error } = await getResend().emails.send({
@@ -144,6 +143,12 @@ async function sendWelcomeEmail(email: string, userId: string) {
       replyTo: RESEND_REPLY_TO,
       subject: WELCOME_SUBJECT,
       html,
+      // RFC 8058 one-click unsubscribe — surfaces Gmail/Apple Mail's native
+      // "Unsubscribe" button and is a direct inbox-placement signal.
+      headers: {
+        "List-Unsubscribe": `<${unsubscribeUrl}>`,
+        "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+      },
     });
     if (error) {
       // The user record is already saved — don't fail the webhook over email.
