@@ -65,14 +65,25 @@ function renderSources(sources: Source[] | null, disclaimer: string | null): str
   return `<div style="font-family:'Spectral SC','Spectral',Georgia,serif;font-size:11.5px;letter-spacing:0.24em;text-transform:uppercase;color:#9C6B1B;margin-bottom:16px;">Sources &amp; record</div>${rows}${disc}`;
 }
 
-/** Assemble the full story email HTML. */
-export function buildEmail(story: Story, dateLabel: string, unsubUrl: string): string {
+/**
+ * Assemble the full story email HTML. `nextWeekday` (e.g. "Thursday") is the
+ * weekday the *next* story is due; when given, the footer names it. Omit it (or
+ * pass null) for the last story or when the day isn't known.
+ */
+export function buildEmail(
+  story: Story,
+  dateLabel: string,
+  unsubUrl: string,
+  nextWeekday?: string | null,
+): string {
   const n = story.story_number;
   const category = story.category ?? "Still at Nine";
   const readMins = story.read_minutes ?? 6;
   const preheader = story.preheader ?? "";
   const nextLine = n >= TOTAL_STORIES
     ? "That was the last of the twenty-four. Thank you for reading."
+    : nextWeekday
+    ? `The next arrives ${nextWeekday} at 9 PM.`
     : "The next arrives at 9 PM.";
 
   return `<!DOCTYPE html>

@@ -58,6 +58,24 @@ function addDays(dateStr: string, days: number): string {
   return `${dt.getUTCFullYear()}-${String(dt.getUTCMonth() + 1).padStart(2, "0")}-${String(dt.getUTCDate()).padStart(2, "0")}`;
 }
 
+/** Weekday name ("Thursday") of a YYYY-MM-DD calendar date. */
+function weekdayOf(dateStr: string): string {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  return new Intl.DateTimeFormat("en-US", { timeZone: "UTC", weekday: "long" })
+    .format(new Date(Date.UTC(y, m - 1, d, 12)));
+}
+
+/**
+ * Weekday the story *after* `storyNo` is due (purchase date + its 2-2-3 offset),
+ * for the email footer's "The next arrives <weekday> at 9 PM." Null after the
+ * last story.
+ */
+function nextStoryWeekday(user: User, storyNo: number): string | null {
+  if (storyNo >= TOTAL_STORIES) return null;
+  const purchaseL = localParts(new Date(user.purchased_at), user.timezone);
+  return weekdayOf(addDays(purchaseL.dateStr, dayOffset(storyNo + 1)));
+}
+
 type User = {
   id: string;
   email: string;
@@ -119,7 +137,7 @@ async function unsubscribeToken(userId: string): Promise<string> {
 async function sendStory(supabase: SupabaseClient, user: User, story: Story, weekday: string) {
   const dateLabel = `${weekday}, 9:00 PM`;
   const unsubUrl = `${SITE_URL}/api/unsubscribe?token=${await unsubscribeToken(user.id)}`;
-  const html = buildEmail(story, dateLabel, unsubUrl);
+  const html = buildEmail(story, dateLabel, unsubUrl, nextStoryWeekday(user, story.story_number));
 
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",

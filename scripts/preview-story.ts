@@ -16,6 +16,7 @@ const html = buildEmail(
   story,
   "Wednesday, 9:00 PM",
   "https://stillatnine.com/api/unsubscribe?token=preview",
+  "Friday", // sample next-story weekday for the footer
 );
 
 const out = path.join(process.cwd(), "public", "_story-preview.html");
