@@ -324,6 +324,38 @@ done ahead of the owner-driven items.
 - Verified: `tsc --noEmit` clean + `next build` green (robots/sitemap emit as
   static routes); local `preview-story.ts` renders the personalised footer.
 
+### Track B — site content (BUILT 2026-06-11, commit `91ad972`)
+Shipped to `master`; Vercel auto-deployed. Verified in preview (no console
+errors; both legal pages + FAQ render on-brand).
+- **FAQ landing section** (`src/components/Faq.tsx`) — NEW copy (no mock
+  counterpart; drafted in brand voice and **approved by owner for review**). 8
+  Q&As as a native `<details>/<summary>` accordion (no JS, accessible) with a
+  +/− toggle; emits **FAQPage JSON-LD** for rich results. Wired into `page.tsx`
+  after `WhosBehind` as `id="faq"` (dark; alternation preserved). Styles added to
+  `landing.css`. Landing copy stays "three nights a week" (days not named).
+- **Privacy Policy `/privacy` + Terms `/terms`** — long-form legal pages via a
+  shared `LegalPage` chrome (`src/components/LegalPage.tsx`, reuses TxChrome
+  `Atmosphere`/`Brand`) + new `src/styles/legal.css`. Per-page `metadata`
+  (title/description). **Owner-confirmed facts baked in:** seller = "Still at
+  Nine, operated by **Aayush** (sole proprietor)", Ranchi, Jharkhand, India;
+  contact `hello@stillatnine.com`; **Dodo = merchant of record**;
+  sub-processors **Resend / Supabase / Vercel** (named); **7-day refund** on
+  request; no data resale; **governing law India, courts at Ranchi**; effective
+  date 11 June 2026; 18+ / DPDP-aware. ⚠️ **NOT legal advice — drafts for owner
+  review.** The footer mailing address is a marked placeholder
+  `[Mailing address — to be added]` pending the P.O. Box (same blocker as the
+  email templates).
+  - Owner decision on identity: full legal surname **not** used — first name
+    "Aayush" + brand + contact email is the agreed identifier (sole proprietor).
+    Can add a fuller legal name / social link later if desired.
+- **Footer**: added Privacy / Terms / Contact(mailto) links + styles
+  (`Footer.tsx`, `landing.css`). **`/privacy` + `/terms` added to
+  `sitemap.ts`** (the Track-A TODO).
+- **SEO basics now essentially complete**: `<title>`/description + OG/Twitter
+  (Phase-1 layout), robots + sitemap (Track A), semantic headings, FAQ JSON-LD.
+  Still optional: **font preloading** (fonts load via stylesheet `<link>`, not
+  `<link rel=preload>`) — minor, deferred.
+
 ### Mailing address (blocker for emails)
 - Get a physical postal address for the email footer (CAN-SPAM / CASL). Owner is
   an India-based sole proprietor, no office. Needs one of: a street address, a
@@ -361,14 +393,15 @@ Do not test piecemeal; send the *finished* emails. Order:
   footer are the same fight. Quick version: mail-tester + 3 seed inboxes catches
   ~95% of issues.
 
-### Site content
-- **Privacy Policy** + **Terms** pages (`/privacy`, `/terms`) — tailored to: no
-  accounts, email + timezone only, Dodo as Merchant of Record, Resend + Supabase
-  as sub-processors, refund policy, no data resale. (Not legal advice; draft to
-  be reviewed.)
-- **FAQ** — landing section (kills purchase objections + long-tail SEO).
-- **SEO basics** — `<title>` + meta description, OG/Twitter tags (images exist),
-  `robots.txt` + `sitemap.xml`, semantic headings, font preloading.
+### Site content — ✅ BUILT in Track B (above); detail kept for reference
+- **Privacy Policy** + **Terms** pages (`/privacy`, `/terms`) — DONE (Track B).
+  Tailored to: no accounts, email + timezone only, Dodo as Merchant of Record,
+  Resend + Supabase (+ Vercel) sub-processors, 7-day refund, no data resale.
+  (Not legal advice; drafts to be reviewed; mailing address still placeholder.)
+- **FAQ** — landing section — DONE (Track B; 8 Q&As + FAQPage JSON-LD).
+- **SEO basics** — `<title>` + meta description, OG/Twitter tags (Phase 1),
+  `robots.txt` + `sitemap.xml` (Track A), semantic headings + FAQ JSON-LD
+  (Track B). **Remaining: font preloading only** (optional).
 
 ### Email headers & one-click unsubscribe (NEW — not built)
 - **`List-Unsubscribe` + `List-Unsubscribe-Post` headers** are NOT set yet. Today
