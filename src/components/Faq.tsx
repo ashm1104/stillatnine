@@ -37,6 +37,10 @@ const FAQS: QA[] = [
     a: "Every email has a one-click unsubscribe, so you can step away any time. And if it isn't for you, write to us within 7 days of buying and we'll refund you in full.",
   },
   {
+    q: "What happens after I finish all 24?",
+    a: "You'll have read the whole collection — and it stays yours. When the next collection of 24 is ready, we'll send you a note so you can pick it up if you'd like more. Nothing renews and nothing is charged automatically; the next one is always your choice.",
+  },
+  {
     q: "I bought it but nothing arrived — what now?",
     a: "Check your spam or Promotions folder first, and add stories@stillatnine.com to your contacts. Still nothing? Reply to any of our emails, or write to hello@stillatnine.com — it reaches a person.",
   },
