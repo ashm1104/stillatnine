@@ -316,11 +316,13 @@ done ahead of the owner-driven items.
   calls `reset()`; distinct from the payment-failure `/error` page) and
   `app/global-error.tsx` (self-contained inline-styled root fallback for when the
   root layout itself throws — no layout fonts/CSS available there).
+- **Story-footer next-weekday personalisation (DONE, commit `89efa50`, Edge fn
+  v9):** footer now reads "The next arrives <weekday> at 9 PM" — the Edge
+  Function computes the next story's due weekday from purchase date + its 2-2-3
+  offset (`nextStoryWeekday`/`weekdayOf`) and passes it to `buildEmail`'s new
+  optional `nextWeekday` param (null on the last story → generic fallback).
 - Verified: `tsc --noEmit` clean + `next build` green (robots/sitemap emit as
-  static routes).
-- **Deferred within Track A:** the optional story-footer weekday personalisation
-  ("The next arrives Thursday at 9 PM") — still generic "The next arrives at
-  9 PM." Small Edge Function change, not done.
+  static routes); local `preview-story.ts` renders the personalised footer.
 
 ### Mailing address (blocker for emails)
 - Get a physical postal address for the email footer (CAN-SPAM / CASL). Owner is
