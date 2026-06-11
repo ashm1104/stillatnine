@@ -38,7 +38,7 @@ const FAQS: QA[] = [
   },
   {
     q: "What happens after I finish all 24?",
-    a: "You'll have read the whole collection — and it stays yours. When the next collection of 24 is ready, we'll send you a note so you can pick it up if you'd like more. Nothing renews and nothing is charged automatically; the next one is always your choice.",
+    a: "You'll have read the whole collection — and it stays yours. There's a next collection waiting in the dark for when you're through with this one; we'll send the occasional follow-up so you can pick it up whenever you're ready for more. Nothing renews and nothing is charged automatically — the next one is always your choice.",
   },
   {
     q: "I bought it but nothing arrived — what now?",

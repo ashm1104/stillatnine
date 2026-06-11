@@ -28,7 +28,7 @@ export function HeroSection({ pricing }: { pricing: Pricing }) {
             <CtaButton checkoutUrl={pricing.checkoutUrl} style={{ width: "100%", maxWidth: 420 }}>
               Get Still at Nine — <span className="strike">{pricing.anchor}</span> {pricing.price} one time
             </CtaButton>
-            <p className="hero-sub">One payment. No subscription. Yours to keep.</p>
+            <p className="hero-sub">One payment. No subscription. No app, no install. Yours to keep.</p>
           </div>
         </div>
       </div>
