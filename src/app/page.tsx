@@ -10,6 +10,7 @@ import { WhatThisIsNot } from "@/components/WhatThisIsNot";
 import { EveryStoryIsReal } from "@/components/EveryStoryIsReal";
 import { FinalCTA } from "@/components/FinalCTA";
 import { WhosBehind } from "@/components/WhosBehind";
+import { Faq } from "@/components/Faq";
 import { Footer } from "@/components/Footer";
 
 // Locked config (HANDOFF §6): cinematic / alternating / archive / rich.
@@ -32,6 +33,7 @@ export default async function LandingPage() {
       <EveryStoryIsReal dark={isDark(5)} />
       <FinalCTA dark={isDark(6)} pricing={pricing} />
       <WhosBehind dark={isDark(7)} />
+      <Faq dark={isDark(8)} />
       <Footer />
     </div>
   );

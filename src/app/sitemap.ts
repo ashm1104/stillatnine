@@ -4,15 +4,13 @@ const SITE_URL = (
   process.env.NEXT_PUBLIC_SITE_URL || "https://stillatnine.com"
 ).replace(/\/$/, "");
 
-// Public, indexable pages only. /privacy and /terms join this list once they
-// ship in Phase 6 Track B; transactional + token pages stay out (see robots.ts).
+// Public, indexable pages only. Transactional + token pages stay out (see
+// robots.ts).
 export default function sitemap(): MetadataRoute.Sitemap {
+  const lastModified = new Date();
   return [
-    {
-      url: `${SITE_URL}/`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 1,
-    },
+    { url: `${SITE_URL}/`, lastModified, changeFrequency: "monthly", priority: 1 },
+    { url: `${SITE_URL}/privacy`, lastModified, changeFrequency: "yearly", priority: 0.3 },
+    { url: `${SITE_URL}/terms`, lastModified, changeFrequency: "yearly", priority: 0.3 },
   ];
 }

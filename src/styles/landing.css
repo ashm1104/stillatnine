@@ -315,6 +315,43 @@ img { max-width: 100%; }
 .who-bio { font-size: 16px; line-height: 1.65; margin: 0; }
 .cta-kicker { font-size: 18px; margin: 0 0 16px; }
 
+/* ===== FAQ (native details/summary accordion) ===== */
+.faq-list { margin-top: 36px; border-top: 1px solid var(--bdk); }
+.sec--lt .faq-list { border-top-color: var(--blt); }
+.faq-item { border-bottom: 1px solid var(--bdk); }
+.sec--lt .faq-item { border-bottom-color: var(--blt); }
+.faq-q {
+  list-style: none; cursor: pointer;
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 24px;
+  padding: 22px 0;
+  font-family: var(--pf); font-size: clamp(18px, 2.4vw, 21px); font-weight: 600;
+  line-height: 1.3; color: var(--tdk); transition: color .15s;
+}
+.sec--lt .faq-q { color: var(--tlt); }
+.faq-q::-webkit-details-marker { display: none; }
+.faq-q:hover { color: var(--ac); }
+.sec--lt .faq-q:hover { color: var(--ac2); }
+/* +/- toggle */
+.faq-mark { position: relative; flex: none; width: 16px; height: 16px; margin-top: 4px; }
+.faq-mark::before, .faq-mark::after {
+  content: ""; position: absolute; background: var(--ac);
+  transition: transform .2s ease, opacity .2s ease;
+}
+.sec--lt .faq-mark::before, .sec--lt .faq-mark::after { background: var(--ac2); }
+.faq-mark::before { top: 7px; left: 0; width: 16px; height: 2px; }
+.faq-mark::after { top: 0; left: 7px; width: 2px; height: 16px; }
+.faq-item[open] .faq-mark::after { transform: scaleY(0); opacity: 0; }
+.faq-a {
+  margin: 0 0 24px; max-width: 62ch;
+  font-family: var(--sp); font-size: clamp(15px, 2vw, 17px); line-height: 1.72;
+  color: var(--mdk);
+}
+.sec--lt .faq-a { color: var(--mlt); }
+@media (prefers-reduced-motion: no-preference) {
+  .faq-item[open] .faq-a { animation: faqIn .25s ease; }
+}
+@keyframes faqIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+
 /* ===== modal ===== */
 .modal-overlay {
   position: fixed; inset: 0; z-index: 100;
@@ -377,6 +414,16 @@ img { max-width: 100%; }
   font-family: var(--sc); font-size: 12px; color: var(--mdk);
   letter-spacing: 0.1em; margin: 0;
 }
+.lp-footer-links {
+  display: flex; align-items: center; justify-content: center;
+  gap: 24px; margin-top: 22px; flex-wrap: wrap;
+}
+.lp-footer-links a {
+  font-family: var(--sc); font-size: 12px; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--mdk); text-decoration: none;
+  transition: color .15s;
+}
+.lp-footer-links a:hover { color: var(--ac); }
 
 /* ===== responsive ===== */
 @media (max-width: 768px) {
