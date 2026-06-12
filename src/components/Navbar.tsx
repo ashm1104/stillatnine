@@ -37,6 +37,9 @@ export function Navbar() {
           <button className="navbar-link" onClick={() => scrollTo("final-cta")}>
             Pricing
           </button>
+          <button className="navbar-link" onClick={() => scrollTo("faq")}>
+            FAQ
+          </button>
         </div>
       </div>
     </nav>
