@@ -38,12 +38,27 @@ export function StoriesSection({ dark, pricing }: { dark: boolean; pricing: Pric
         Tap a story to preview it.
       </p>
 
-      <StoryModal story={activeStory} onClose={() => setActiveStory(null)} price={pricing.price} />
+      <StoryModal
+        story={activeStory}
+        onClose={() => setActiveStory(null)}
+        price={pricing.price}
+        anchor={pricing.anchor}
+      />
     </SectionWrap>
   );
 }
 
-function StoryModal({ story, onClose, price }: { story: number | null; onClose: () => void; price: string }) {
+function StoryModal({
+  story,
+  onClose,
+  price,
+  anchor,
+}: {
+  story: number | null;
+  onClose: () => void;
+  price: string;
+  anchor: string;
+}) {
   if (story == null) return null;
   const s = STORIES[story];
   return (
@@ -64,14 +79,14 @@ function StoryModal({ story, onClose, price }: { story: number | null; onClose: 
           <div className="modal-tease">
             <p>This story continues in your inbox.</p>
             <button className="cta-btn cta-btn--sm" onClick={onClose}>
-              Get Still at Nine — {price}
+              Get Still at Nine — <span className="strike">{anchor}</span> {price}
             </button>
           </div>
         ) : (
           <div className="modal-tease modal-tease--full">
             <p>This is one of 24 stories.</p>
             <button className="cta-btn cta-btn--sm" onClick={onClose}>
-              Get all 24 — {price}
+              Get all 24 — <span className="strike">{anchor}</span> {price}
             </button>
           </div>
         )}
