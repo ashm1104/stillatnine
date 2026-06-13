@@ -559,6 +559,31 @@ teaser for Pool A.
   `X-Robots-Tag: noindex` on preview deployments, so only the apex gets indexed;
   `www` → 301 → apex is already configured (DECISIONS DNS section).
 
+### Section C — analytics ($0 stack) (BUILT 2026-06-13)
+- **Vercel Web Analytics**: `@vercel/analytics` installed; `<Analytics />` in the
+  root layout. ⚠️ **Owner must toggle "Web Analytics" ON in the Vercel project
+  dashboard** — the script only sends data once enabled.
+- **Source attribution**: `signup_source` is captured at every capture origin
+  (`modal-<num>`, `page-stories`, `story-<slug>`, `stub-<slug>`); email buy links
+  carry `?src=free1/free2/pitch/occasional`.
+- **The one dashboard**: SQL view `public.funnel_by_source` — captures by source
+  (from `subscribers`) and purchases by source (buyers joined to their
+  subscriber row by email; never-captured buyers = `direct`). Query:
+  `select * from public.funnel_by_source;`
+- **Owner**: add `utm_source` to every EXTERNAL link you post (carousel bio,
+  listings, Quora/Medium) — that's content, not code.
+
+### Section E — templates ("design as dev") (BUILT 2026-06-13)
+- **Carousel template** — `/carousel/<slug>` renders three on-brand 1080×1080
+  IG/Pinterest slides (cover / hook / CTA) from a story in Supabase; the gallery
+  page shows them to right-click-save. "New story = text swap" = change the slug.
+  Images via `/carousel/<slug>/img?n=1..3` (next/og). Internal tool — noindexed
+  (robots disallow `/carousel/`). Decorative marks are drawn (not glyphs — the
+  Playfair TTF satori loads lacks ✦).
+- **Dynamic OG-image route** — done in Section B (per-story OG); the font loader
+  is shared (`src/lib/brand-font.ts`).
+- **Email header** — already final (masthead lamp + name + badge); no change.
+
 ## Parked / deferred (decided NOT to do now — revisit later)
 
 Conscious "not now" calls, so a future session doesn't rebuild them by mistake:

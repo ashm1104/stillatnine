@@ -5,6 +5,7 @@
 
 import { ImageResponse } from "next/og";
 import { getStoryBySlug } from "@/lib/stories-db";
+import { playfairTTF } from "@/lib/brand-font";
 
 export const runtime = "nodejs";
 export const revalidate = 3600;
@@ -18,29 +19,13 @@ const ACCENT = "#D8A24C";
 const DK_TEXT = "#F0E9DC";
 const DK_MUTED = "#9C8E78";
 
-/** Fetch a Playfair Display TTF from Google Fonts (TTF, not woff2, for satori). */
-async function playfair(): Promise<ArrayBuffer | null> {
-  try {
-    const css = await fetch(
-      "https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600",
-      // An old UA makes Google serve a TTF (satori can't parse woff2).
-      { headers: { "User-Agent": "Mozilla/5.0 (Windows NT 6.1)" } },
-    ).then((r) => r.text());
-    const url = css.match(/src:\s*url\((https:\/\/[^)]+\.ttf)\)/)?.[1];
-    if (!url) return null;
-    return await fetch(url).then((r) => r.arrayBuffer());
-  } catch {
-    return null;
-  }
-}
-
 export default async function OgImage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const story = await getStoryBySlug(slug);
   const title = story?.title ?? "Still at Nine";
   const eyebrow = (story?.category ?? "Still at Nine").toUpperCase();
 
-  const font = await playfair();
+  const font = await playfairTTF();
   const fonts = font
     ? [{ name: "Playfair Display", data: font, weight: 600 as const, style: "normal" as const }]
     : undefined;
