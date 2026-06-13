@@ -527,6 +527,38 @@ ghost secondary buy button; captures `email` + browser `timezone` + `source`
 - The funnel reuses the same Resend/CRON/TOKEN secrets already set in Supabase —
   no new Edge Function secrets required.
 
+### Section B — public story pages + SEO (BUILT 2026-06-13)
+
+Render-from-Supabase, **SSG + ISR** (`revalidate = 3600`) — full HTML at
+request time, no hardcoded content, no client-only rendering (the locked
+non-negotiable). Verified: prod build prerenders `/stories` + each
+`/stories/[slug]`; SSR HTML contains the full body for Pool B and only the
+teaser for Pool A.
+- **`/stories`** — archive index; lists published stories (sequence then number).
+  Pool B/C → "Read free", Pool A → "Locked".
+- **`/stories/[slug]`** — `getStoryBySlug` (service-role, server-only). Pool B/C
+  → full story (`StoryContent` semantic render + sources). Pool A/untagged →
+  locked stub (teaser hook + lock panel + capture/buy). `isFullyPublic()` is the
+  gate. `generateStaticParams` from published slugs; `notFound()` otherwise.
+- **Dynamic OG image** — `stories/[slug]/opengraph-image.tsx` (next/og, node
+  runtime). On-brand lamplight card; Playfair fetched as TTF from Google Fonts
+  with a graceful fallback. Also satisfies Section E's "dynamic OG-image route".
+- **SEO**: per-page `<title>`/description (from preheader/lead) + OG/Twitter +
+  per-page OG image; `alternates.canonical` (apex via `metadataBase`); **Article
+  JSON-LD** on full pages only. `sitemap.ts` is now async and includes `/stories`
+  + every published slug. robots already allows `/`.
+- **Reading surface**: dark "after-dark" aesthetic (`stories.css`) reusing
+  TxChrome Atmosphere/Brand/Footer + transactional.css; tokens only. Internal
+  links added (navbar "Archive", stories-section "Browse the archive →") for
+  crawlability.
+
+### Section B — OWNER actions (can't be done from code)
+- **Google Search Console + Bing Webmaster**: verify the domain (Cloudflare DNS
+  TXT record), submit `https://stillatnine.com/sitemap.xml`, request indexing.
+  Do this as soon as pages are live — indexing takes weeks. Vercel already sets
+  `X-Robots-Tag: noindex` on preview deployments, so only the apex gets indexed;
+  `www` → 301 → apex is already configured (DECISIONS DNS section).
+
 ## Parked / deferred (decided NOT to do now — revisit later)
 
 Conscious "not now" calls, so a future session doesn't rebuild them by mistake:

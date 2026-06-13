@@ -37,7 +37,7 @@ export function StoriesSection({ dark, pricing }: { dark: boolean; pricing: Pric
         ))}
       </div>
       <p className="story-hint" style={{ color: dark ? MDK : MLT }}>
-        Tap a story to preview it.
+        Tap a story to preview it. <a href="/stories" className="story-archive-link" style={{ color: dark ? AC : AC2 }}>Browse the archive →</a>
       </p>
 
       <StoryModal

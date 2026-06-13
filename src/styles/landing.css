@@ -249,6 +249,11 @@ img { max-width: 100%; }
 .story-hint {
   font-size: 14px; font-style: italic; margin: 20px 0 0; opacity: 0.7;
 }
+.story-archive-link {
+  font-style: normal; text-decoration: none;
+  border-bottom: 1px solid currentColor; padding-bottom: 1px; margin-left: 6px;
+}
+.story-archive-link:hover { opacity: 0.8; }
 
 /* ===== how it works — stepped layout ===== */
 .how-grid {

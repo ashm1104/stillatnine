@@ -1,0 +1,172 @@
+/* Public story pages (/stories + /stories/[slug]).
+   Dark "after-dark" reading surface, consistent with the transactional pages
+   (reuses TxChrome Atmosphere/Brand/Footer + transactional.css). Tokens only —
+   never invent colors (see tokens.css). */
+
+.st-page {
+  position: relative; min-height: 100vh; overflow: hidden;
+  display: flex; flex-direction: column;
+  background: var(--dk); color: var(--tdk);
+}
+.st-shell {
+  position: relative; z-index: 3; flex: 1;
+  width: 100%; max-width: 720px; margin: 0 auto;
+  padding: 132px 28px 80px;
+}
+
+/* ---- shared bits ---- */
+.st-eyebrow {
+  font-family: var(--sc); font-size: 12px; font-weight: 600;
+  letter-spacing: 0.3em; text-transform: uppercase; color: var(--ac);
+  margin: 0 0 18px;
+}
+.st-cta-lead {
+  font-family: var(--pf); font-size: 22px; font-weight: 600;
+  color: var(--tdk); margin: 0 0 18px; line-height: 1.3;
+}
+.st-link { color: var(--ac); text-decoration: none; border-bottom: 1px solid rgba(216,162,76,0.35); }
+.st-link:hover { color: var(--ac-hover); }
+.st-cta-or {
+  font-family: var(--sp); font-size: 14.5px; color: var(--mdk);
+  margin: 18px 0 0; text-align: center; font-style: italic;
+}
+
+/* ---- archive (/stories) ---- */
+.st-archive-head { margin-bottom: 44px; }
+.st-archive-title {
+  font-family: var(--pf); font-weight: 600; font-size: 38px; line-height: 1.12;
+  letter-spacing: -0.015em; color: var(--tdk); margin: 0 0 16px;
+}
+.st-archive-sub {
+  font-family: var(--sp); font-size: 17px; line-height: 1.6; color: var(--mdk);
+  margin: 0; max-width: 36em;
+}
+.st-archive-list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--bdk); }
+.st-archive-item { border-bottom: 1px solid var(--bdk); }
+.st-archive-link {
+  display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap;
+  padding: 22px 6px; text-decoration: none; transition: background .15s, padding-left .15s;
+}
+.st-archive-link:hover { background: rgba(216,162,76,0.05); padding-left: 14px; }
+.st-archive-num {
+  font-family: var(--sc); font-size: 11.5px; letter-spacing: 0.16em;
+  text-transform: uppercase; color: var(--ac); flex: 0 0 auto; min-width: 150px;
+}
+.st-archive-name {
+  font-family: var(--pf); font-size: 21px; font-weight: 600; color: var(--tdk);
+  flex: 1 1 240px; line-height: 1.25;
+}
+.st-archive-tag {
+  font-family: var(--sc); font-size: 11px; letter-spacing: 0.14em;
+  text-transform: uppercase; flex: 0 0 auto;
+}
+.st-archive-tag.is-open { color: var(--ac); }
+.st-archive-tag.is-locked { color: var(--mdk); opacity: 0.7; }
+.st-empty { font-family: var(--sp); font-style: italic; color: var(--mdk); }
+.st-archive-cta {
+  margin-top: 56px; padding-top: 40px; border-top: 1px solid var(--bdk);
+  text-align: center;
+}
+
+/* ---- single story (/stories/[slug]) ---- */
+.st-article { max-width: 720px; }
+.st-head { margin-bottom: 8px; }
+.st-title {
+  font-family: var(--pf); font-weight: 600; font-size: 40px; line-height: 1.12;
+  letter-spacing: -0.02em; color: var(--tdk); margin: 0 0 16px;
+}
+.st-meta {
+  font-family: var(--sc); font-size: 11.5px; letter-spacing: 0.16em;
+  text-transform: uppercase; color: var(--mdk); margin: 0;
+}
+.st-rule { height: 1px; background: var(--bdk); margin: 28px 0 8px; }
+
+.st-body { font-family: var(--sp); }
+.st-body p {
+  font-size: 18px; line-height: 1.78; color: var(--tdk); margin: 0 0 24px;
+  opacity: 0.92;
+}
+.st-lead { font-size: 20px; line-height: 1.7; }
+.st-lead::first-letter {
+  font-family: var(--pf); font-weight: 600; font-size: 58px; line-height: 0.8;
+  float: left; padding: 6px 12px 0 0; color: var(--ac);
+}
+.st-section {
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+  margin: 44px 0 26px;
+}
+.st-section-rule { color: var(--ac); font-size: 14px; letter-spacing: 0.3em; }
+.st-section-label {
+  font-family: var(--sc); font-size: 13px; font-weight: 600; letter-spacing: 0.26em;
+  text-transform: uppercase; color: var(--ac); text-align: center;
+}
+.st-quote {
+  font-family: var(--pf); font-style: italic; font-weight: 500; font-size: 24px;
+  line-height: 1.5; color: var(--tdk); text-align: center;
+  margin: 36px 0; padding: 0 8px; border: 0;
+}
+.st-list { margin: 0 0 24px; padding-left: 22px; }
+.st-list li {
+  font-family: var(--sp); font-size: 18px; line-height: 1.78; color: var(--tdk);
+  margin: 0 0 10px; opacity: 0.92;
+}
+
+/* sources + record */
+.st-sources {
+  margin-top: 40px; padding: 26px 28px; border: 1px solid var(--bdk);
+  background: var(--dk2); border-radius: 14px;
+}
+.st-sources-label {
+  font-family: var(--sc); font-size: 11.5px; letter-spacing: 0.24em;
+  text-transform: uppercase; color: var(--ac); margin: 0 0 16px;
+}
+.st-source { font-family: var(--sp); font-size: 14px; line-height: 1.55; color: var(--mdk); margin: 0 0 10px; }
+.st-source:last-of-type { margin-bottom: 0; }
+.st-source-dot { color: var(--ac); margin-right: 8px; }
+.st-source a { color: var(--mdk); text-decoration: underline; }
+.st-source a:hover { color: var(--tdk); }
+.st-disclaimer {
+  font-family: var(--sp); font-style: italic; font-size: 14px; line-height: 1.6;
+  color: var(--mdk); margin: 16px 0 0; padding-top: 16px; border-top: 1px solid var(--bdk);
+}
+
+.st-tail-cta {
+  margin-top: 52px; padding-top: 40px; border-top: 1px solid var(--bdk);
+  text-align: center;
+}
+
+/* ---- locked stub (Pool A) ---- */
+.st-body--teaser { position: relative; }
+.st-body--teaser::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 60%;
+  background: linear-gradient(to bottom, transparent, var(--dk));
+  pointer-events: none;
+}
+.st-lock-panel {
+  margin-top: 8px; padding: 36px 32px; text-align: center;
+  border: 1px solid var(--bdk); border-radius: 16px;
+  background: var(--dk2);
+}
+.st-lock-mark { display: block; color: var(--ac); font-size: 18px; letter-spacing: 0.3em; margin-bottom: 16px; }
+.st-lock-title { font-family: var(--pf); font-weight: 600; font-size: 24px; color: var(--tdk); margin: 0 0 12px; }
+.st-lock-note {
+  font-family: var(--sp); font-size: 16px; line-height: 1.6; color: var(--mdk);
+  margin: 0 auto 24px; max-width: 30em;
+}
+
+/* On dark, the capture input/note need light-on-dark treatment. */
+.st-page .capture-input {
+  background: var(--dk); border-color: var(--bdk); color: var(--tdk);
+}
+.st-page .capture-input::placeholder { color: var(--mdk); opacity: 0.7; }
+.st-page .capture-note { color: var(--mdk); }
+.st-page .capture-done-title { color: var(--tdk); }
+.st-page .capture-done-body { color: var(--mdk); }
+
+@media (max-width: 768px) {
+  .st-shell { padding: 110px 22px 64px; }
+  .st-title { font-size: 31px; }
+  .st-archive-title { font-size: 30px; }
+  .st-archive-num { min-width: 0; flex-basis: 100%; }
+  .st-body p, .st-list li { font-size: 17px; }
+}

@@ -31,6 +31,9 @@ export function Navbar() {
           <button className="navbar-link" onClick={() => scrollTo("stories")}>
             Preview
           </button>
+          <a className="navbar-link" href="/stories">
+            Archive
+          </a>
           <button className="navbar-link" onClick={() => scrollTo("how")}>
             How it works
           </button>
