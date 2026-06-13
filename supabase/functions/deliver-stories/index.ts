@@ -10,6 +10,7 @@
 
 import { createClient, type SupabaseClient } from "jsr:@supabase/supabase-js@2";
 import { buildEmail, type Story, TOTAL_STORIES } from "./render.ts";
+import { processFunnel } from "./funnel.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -66,14 +67,12 @@ function weekdayOf(dateStr: string): string {
 }
 
 /**
- * Weekday the story *after* `storyNo` is due (purchase date + its 2-2-3 offset),
- * for the email footer's "The next arrives <weekday> at 9 PM." Null after the
- * last story.
+ * Weekday the NEXT paid slot is due (purchase date + the 2-2-3 offset of
+ * slot+1), for the footer's "The next arrives <weekday> at 9 PM."
  */
-function nextStoryWeekday(user: User, storyNo: number): string | null {
-  if (storyNo >= TOTAL_STORIES) return null;
+function slotWeekday(user: User, slot: number): string {
   const purchaseL = localParts(new Date(user.purchased_at), user.timezone);
-  return weekdayOf(addDays(purchaseL.dateStr, dayOffset(storyNo + 1)));
+  return weekdayOf(addDays(purchaseL.dateStr, dayOffset(slot + 1)));
 }
 
 type User = {
@@ -84,26 +83,48 @@ type User = {
   current_story: number | null;
 };
 
-/** Decide whether the user's next story is due to send right now. */
-function isDue(user: User, now: Date): { due: boolean; storyNo: number; weekday: string } {
-  const storyNo = (user.current_story ?? 0) + 1;
+/**
+ * Decide whether the user's next paid slot is due right now. `slot` is 1-based
+ * = current_story + 1, where current_story counts paid sends completed (NOT the
+ * highest story number — see the playlist model in DECISIONS/launch-reference).
+ * The schedule is positional: slot k fires at purchase date + dayOffset(k).
+ */
+function isDue(user: User, now: Date): { due: boolean; slot: number; weekday: string } {
+  const slot = (user.current_story ?? 0) + 1;
   const nowL = localParts(now, user.timezone);
   const purchaseL = localParts(new Date(user.purchased_at), user.timezone);
 
-  if (storyNo === 1) {
-    // Bought after 9 PM local → send immediately (any hour, next run).
-    if (purchaseL.hour >= 21) return { due: true, storyNo, weekday: nowL.weekday };
+  if (slot === 1) {
+    // Bought after 9 PM local → send the first story immediately (any hour).
+    if (purchaseL.hour >= 21) return { due: true, slot, weekday: nowL.weekday };
     // Bought before 9 PM → due at 9 PM on the purchase date.
     const due = nowL.dateStr >= purchaseL.dateStr && nowL.hour >= 21;
-    return { due, storyNo, weekday: nowL.weekday };
+    return { due, slot, weekday: nowL.weekday };
   }
 
-  // Stories 2-24: due at 9 PM local on (purchase date + offset). The evening
+  // Later slots: due at 9 PM local on (purchase date + offset). The evening
   // gate (hour >= 21) keeps sends after dark and lets a missed slot catch up
   // the next evening rather than firing at an odd hour.
-  const dueDate = addDays(purchaseL.dateStr, dayOffset(storyNo));
+  const dueDate = addDays(purchaseL.dateStr, dayOffset(slot));
   const due = nowL.dateStr >= dueDate && nowL.hour >= 21;
-  return { due, storyNo, weekday: nowL.weekday };
+  return { due, slot, weekday: nowL.weekday };
+}
+
+/** Story numbers a buyer has already received (paid sends + free carry-over). */
+async function receivedNumbers(supabase: SupabaseClient, userId: string): Promise<Set<number>> {
+  const { data } = await supabase
+    .from("delivery_history")
+    .select("story_number")
+    .eq("user_id", userId)
+    .in("status", ["sent", "abandoned", "free_carryover"]);
+  return new Set((data ?? []).map((r: { story_number: number }) => r.story_number));
+}
+
+/** The buyer's remaining playlist: 1..24 minus already-received, in order. */
+function buildPlaylist(received: Set<number>): number[] {
+  const out: number[] = [];
+  for (let n = 1; n <= TOTAL_STORIES; n++) if (!received.has(n)) out.push(n);
+  return out;
 }
 
 // ---------------------------------------------------------------------------
@@ -134,10 +155,18 @@ async function unsubscribeToken(userId: string): Promise<string> {
 // Sending + logging
 // ---------------------------------------------------------------------------
 
-async function sendStory(supabase: SupabaseClient, user: User, story: Story, weekday: string) {
+async function sendStory(
+  supabase: SupabaseClient,
+  user: User,
+  story: Story,
+  weekday: string,
+  slot: number,
+  isLast: boolean,
+) {
   const dateLabel = `${weekday}, 9:00 PM`;
   const unsubUrl = `${SITE_URL}/api/unsubscribe?token=${await unsubscribeToken(user.id)}`;
-  const html = buildEmail(story, dateLabel, unsubUrl, nextStoryWeekday(user, story.story_number));
+  const nextWeekday = isLast ? null : slotWeekday(user, slot);
+  const html = buildEmail(story, dateLabel, unsubUrl, { kind: "paid", nextWeekday, isLast });
 
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -165,7 +194,9 @@ async function sendStory(supabase: SupabaseClient, user: User, story: Story, wee
       resend_id: data.id ?? null,
       status: "sent",
     });
-    await supabase.from("users").update({ current_story: story.story_number }).eq("id", user.id);
+    // current_story counts paid SLOTS completed (not the story number) — this is
+    // the playlist position the next run reads from.
+    await supabase.from("users").update({ current_story: slot }).eq("id", user.id);
     return { ok: true };
   }
 
@@ -193,7 +224,8 @@ async function sendStory(supabase: SupabaseClient, user: User, story: Story, wee
     });
   }
   if (abandoned) {
-    await supabase.from("users").update({ current_story: story.story_number }).eq("id", user.id);
+    // Consume the slot so a permanently-failing story doesn't stall the rest.
+    await supabase.from("users").update({ current_story: slot }).eq("id", user.id);
   }
   console.error(`[deliver] send failed user ${user.id} story ${story.story_number}: ${errText}`);
   return { ok: false, abandoned };
@@ -244,9 +276,22 @@ Deno.serve(async (req) => {
 
   for (const user of (users ?? []) as User[]) {
     try {
-      const { due, storyNo, weekday } = isDue(user, now);
+      const { due, slot, weekday } = isDue(user, now);
       if (!due) { skipped++; continue; }
       if (await sentToday(supabase, user, now)) { skipped++; continue; } // ≤1/day
+
+      // Playlist: 1..24 minus stories already received (paid + free carry-over).
+      // Received stories are removed, so the NEXT story is always playlist[0].
+      // `slot` (from current_story) drives only the 2-2-3 schedule, not which
+      // story — for a pure buyer playlist[0] === current_story+1 (unchanged).
+      const playlist = buildPlaylist(await receivedNumbers(supabase, user.id));
+      const storyNo = playlist[0];
+      if (storyNo === undefined) {
+        await supabase.from("users").update({ current_story: TOTAL_STORIES }).eq("id", user.id);
+        skipped++;
+        continue;
+      }
+      const isLast = playlist.length === 1;
 
       const { data: story } = await supabase
         .from("stories")
@@ -257,7 +302,7 @@ Deno.serve(async (req) => {
 
       if (!story) { skipped++; continue; } // story not ready yet — try next run
 
-      const r = await sendStory(supabase, user, story as Story, weekday);
+      const r = await sendStory(supabase, user, story as Story, weekday, slot, isLast);
       r.ok ? sent++ : failed++;
     } catch (e) {
       failed++;
@@ -265,7 +310,19 @@ Deno.serve(async (req) => {
     }
   }
 
-  const summary = { sent, failed, skipped, considered: users?.length ?? 0 };
+  // Funnel free-sequence (subscribers) — same cron tick, after the buyer loop.
+  let funnel = { sent: 0, failed: 0, skipped: 0, purchased: 0, considered: 0 };
+  try {
+    funnel = await processFunnel(
+      supabase,
+      { resendKey: RESEND_API_KEY, tokenSecret: TOKEN_SECRET, siteUrl: SITE_URL, from: FROM, replyTo: REPLY_TO },
+      now,
+    );
+  } catch (e) {
+    console.error("[funnel] processing errored:", e);
+  }
+
+  const summary = { sent, failed, skipped, considered: users?.length ?? 0, funnel };
   console.log("[deliver]", JSON.stringify(summary));
   return new Response(JSON.stringify(summary), { headers: { "Content-Type": "application/json" } });
 });

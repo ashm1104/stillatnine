@@ -438,6 +438,95 @@ Do not test piecemeal; send the *finished* emails. Order:
 
 ---
 
+## Phase 7 — Marketing funnel (launch-reference.md Part 3)
+
+The free-email funnel layered on top of the paid product: homepage modals →
+email capture → 2 free stories → 1 pitch → occasional emails, all at 9 PM
+subscriber-local. Buyers stay in `users`; the funnel adds a parallel
+`subscribers` world that *graduates* into `users` on purchase.
+
+### Section A — schema + capture + cron (BUILT & DEPLOYED 2026-06-13)
+
+**New tables (additive — paid delivery untouched):**
+- **`subscribers`** — free captures: `email` (unique, lowercased), `timezone`
+  (browser Intl), `currency` (geo at signup), `status`
+  (`free_sequence|pitched|dormant|purchased|unsubscribed`), `funnel_step`
+  (0=pre #1, 1=pre #2, 2=pre pitch, 3=dormant/occasional), `next_send_at`
+  (UTC instant of the next 9 PM-local send), `signup_source`, `bounced`,
+  `complained`. RLS on, no policies (service-role only).
+- **`story_sends`** — per-subscriber ledger (dedupe + retry, mirrors
+  `delivery_history`): `subscriber_id`, `story_number` (null for the pitch),
+  `type` (`free|paid|occasional|pitch`), `resend_id`, `status`,
+  `failure_count`.
+- **`stories`** gained `slug` (unique), `pool` (`A|B|C`), `sequence_position`
+  for Section B pages + Section D content. **Provisional test assignment:**
+  story 1 → Pool B + slug `the-grave-that-shouldnt-exist`, story 2 → Pool A
+  (`the-cias-last-code`). Section D finalizes the real Pool B trio.
+
+**Cron — extended the existing `deliver-stories` Edge Function** (NOT a second
+function/cron job — reuses the same 15-min cron-job.org tick + `CRON_SECRET`).
+After the buyer loop it runs `processFunnel()` (`funnel.ts`): selects
+subscribers whose `next_send_at <= now` and not bounced/complained, then per
+subscriber re-checks purchase (race guard) and advances one step. Edge fn **v10**.
+- **Late-signup immediate send:** `/api/subscribe` sets `next_send_at = now` when
+  the signup falls in the 8:30 PM–1:59 AM local window → the next cron tick
+  (≤15 min) sends story #1 ("you're just in time"). Otherwise `next_send_at` =
+  9 PM local today (`localWallToUtc` fixpoint on the tz offset).
+- **Purchase exits instantly + re-check at send time:** the Dodo webhook
+  graduates a converting subscriber (below), AND `processFunnel` re-queries
+  `users` by email before every send → flips `status='purchased'`, no send.
+  Both verified live (a buyer-email subscriber flipped to purchased, 0 sends).
+- **Dedupe:** `story_sends` per subscriber; `pickStory` excludes already-sent
+  numbers. Retry mirrors the buyer path (status `failed` → 3 → `abandoned`,
+  then advance so the sequence never stalls).
+- **Step timing:** #1 → +3 nights → #2 → +2 nights → pitch → +5 weeks →
+  occasional (repeats every ~5 weeks). All at 9 PM local.
+
+**Buyer dedupe — the "playlist" model (changes paid delivery, backward-compatible):**
+- `deliver-stories` no longer sends `story_number = current_story + 1`. It builds
+  a **playlist** = `1..24` minus stories in `delivery_history` with status in
+  (`sent`,`abandoned`,`free_carryover`) and sends `playlist[0]`. `current_story`
+  now counts **paid slots completed** (drives the 2-2-3 schedule via
+  `dayOffset(slot)`), not the highest story number. For a pure buyer
+  `playlist[0] === current_story+1`, so behavior is identical (verified the live
+  buyer still no-ops correctly).
+- **Graduation (Dodo webhook):** on first creation, look up the subscriber by
+  email; pre-seed `delivery_history` with `status='free_carryover'` rows for each
+  collection story (1..24) they read free, and set `subscribers.status='purchased'`.
+  Carry-over rows are excluded from the playlist (no duplicate) but DON'T count as
+  a paid slot, so "first story tonight" still holds. New footer flag `isLast` (a
+  graduated buyer's last paid story may be #23, not #24).
+
+**Tokens (`src/lib/token.ts` + mirrored in `funnel.ts`):** buyer tokens
+`<userId>.<sig>` are frozen (already live in sent mail); subscriber tokens are
+`sub.<id>.<sig>` (the `sub.` prefix is part of the signed payload, so a buyer
+token can't be replayed as a subscriber one). `/api/unsubscribe` +
+`/api/resubscribe` route by audience via `verifyAnyToken`. Subscriber
+unsubscribe → `status='unsubscribed'`; resubscribe → `status='dormant'`
+(rejoins occasional, ~5 weeks out). The Resend bounce/complaint webhook now
+flags both `users` and `subscribers`.
+
+**Email templates (`render.ts`):** one story template, footer variants
+`paid|free_soft|free_firm|occasional|pitch` + masthead badge ("Story N/24" vs
+"A free story"). Footer copy verbatim from the doc (soft/firm). New
+`buildPitchEmail()` (Archivist voice, named locked hooks, price+anchor, one
+button, honest "first story tonight if you join before nine" urgency). **Pitch
+marketing copy is a DRAFT for owner review** (Part 5 open item "write together").
+Email buy links carry `?src=free1/free2/pitch/occasional` (Section C UTM).
+
+**Frontend (`CaptureForm.tsx` + `StoriesSection.tsx`):** preview modals now lead
+with the email capture (primary, amber "Read it in full tonight — free") above a
+ghost secondary buy button; captures `email` + browser `timezone` + `source`
+(`modal-<num>`) to `/api/subscribe`. On-brand confirmation states
+("It's coming tonight at nine." / "You're just in time."). Verified in preview.
+
+### Section A — still open for the owner
+- **Pool B not finalized** — only story 1 is provisionally Pool B. The funnel
+  needs ≥2 Pool B stories assigned (Section D) to send free #1 AND #2; with one,
+  it sends #1 then jumps to the pitch (graceful).
+- The funnel reuses the same Resend/CRON/TOKEN secrets already set in Supabase —
+  no new Edge Function secrets required.
+
 ## Parked / deferred (decided NOT to do now — revisit later)
 
 Conscious "not now" calls, so a future session doesn't rebuild them by mistake:

@@ -6,6 +6,8 @@
 
 import { useState } from "react";
 import { SectionWrap, Eyebrow } from "./Shared";
+import { CaptureForm } from "./CaptureForm";
+import { CtaButton } from "./CtaButton";
 import { STORIES } from "@/lib/stories";
 import { AC, AC2, TDK, TLT, MDK, MLT } from "@/lib/theme";
 import type { Pricing } from "@/lib/pricing";
@@ -43,6 +45,7 @@ export function StoriesSection({ dark, pricing }: { dark: boolean; pricing: Pric
         onClose={() => setActiveStory(null)}
         price={pricing.price}
         anchor={pricing.anchor}
+        checkoutUrl={pricing.checkoutUrl}
       />
     </SectionWrap>
   );
@@ -53,14 +56,19 @@ function StoryModal({
   onClose,
   price,
   anchor,
+  checkoutUrl,
 }: {
   story: number | null;
   onClose: () => void;
   price: string;
   anchor: string;
+  checkoutUrl: string;
 }) {
   if (story == null) return null;
   const s = STORIES[story];
+  // PRIMARY = email capture (read it free tonight); SECONDARY = buy the
+  // collection. The 9 PM story demos the product; the funnel demos it rather
+  // than describing it (launch-reference.md Part 1).
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
@@ -75,21 +83,17 @@ function StoryModal({
           ))}
           {s.cutoff && <span className="modal-ellipsis">…</span>}
         </div>
-        {s.cutoff ? (
-          <div className="modal-tease">
-            <p>This story continues in your inbox.</p>
-            <button className="cta-btn cta-btn--sm" onClick={onClose}>
-              Get Still at Nine — <span className="strike">{anchor}</span> {price}
-            </button>
-          </div>
-        ) : (
-          <div className="modal-tease modal-tease--full">
-            <p>This is one of 24 stories.</p>
-            <button className="cta-btn cta-btn--sm" onClick={onClose}>
-              Get all 24 — <span className="strike">{anchor}</span> {price}
-            </button>
-          </div>
-        )}
+        <div className="modal-tease">
+          <p>{s.cutoff ? "This story continues in your inbox." : "This is one of 24 stories."}</p>
+          <CaptureForm
+            source={`modal-${s.num}`}
+            ctaLabel={s.cutoff ? "Read it in full tonight — free" : "Read tonight's story — free"}
+          />
+          <div className="modal-or"><span>or get the whole collection</span></div>
+          <CtaButton checkoutUrl={checkoutUrl} className="cta-btn--sm cta-btn--ghost">
+            Get all 24 — <span className="strike">{anchor}</span> {price}
+          </CtaButton>
+        </div>
       </div>
     </div>
   );

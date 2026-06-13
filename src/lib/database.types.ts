@@ -63,8 +63,11 @@ export type Database = {
           date_label: string | null
           disclaimer: string | null
           id: string
+          pool: string | null
           preheader: string | null
           read_minutes: number | null
+          sequence_position: number | null
+          slug: string | null
           sources: Json | null
           status: string | null
           story_number: number
@@ -80,8 +83,11 @@ export type Database = {
           date_label?: string | null
           disclaimer?: string | null
           id?: string
+          pool?: string | null
           preheader?: string | null
           read_minutes?: number | null
+          sequence_position?: number | null
+          slug?: string | null
           sources?: Json | null
           status?: string | null
           story_number: number
@@ -97,8 +103,11 @@ export type Database = {
           date_label?: string | null
           disclaimer?: string | null
           id?: string
+          pool?: string | null
           preheader?: string | null
           read_minutes?: number | null
+          sequence_position?: number | null
+          slug?: string | null
           sources?: Json | null
           status?: string | null
           story_number?: number
@@ -106,6 +115,89 @@ export type Database = {
           title?: string
           updated_at?: string | null
           word_count?: number | null
+        }
+        Relationships: []
+      }
+      story_sends: {
+        Row: {
+          failure_count: number
+          id: string
+          resend_id: string | null
+          sent_at: string
+          status: string
+          story_number: number | null
+          subscriber_id: string
+          type: string
+        }
+        Insert: {
+          failure_count?: number
+          id?: string
+          resend_id?: string | null
+          sent_at?: string
+          status?: string
+          story_number?: number | null
+          subscriber_id: string
+          type: string
+        }
+        Update: {
+          failure_count?: number
+          id?: string
+          resend_id?: string | null
+          sent_at?: string
+          status?: string
+          story_number?: number | null
+          subscriber_id?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "story_sends_subscriber_id_fkey"
+            columns: ["subscriber_id"]
+            isOneToOne: false
+            referencedRelation: "subscribers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscribers: {
+        Row: {
+          bounced: boolean
+          complained: boolean
+          created_at: string
+          currency: string
+          email: string
+          funnel_step: number
+          id: string
+          next_send_at: string | null
+          signup_source: string | null
+          status: string
+          timezone: string | null
+        }
+        Insert: {
+          bounced?: boolean
+          complained?: boolean
+          created_at?: string
+          currency?: string
+          email: string
+          funnel_step?: number
+          id?: string
+          next_send_at?: string | null
+          signup_source?: string | null
+          status?: string
+          timezone?: string | null
+        }
+        Update: {
+          bounced?: boolean
+          complained?: boolean
+          created_at?: string
+          currency?: string
+          email?: string
+          funnel_step?: number
+          id?: string
+          next_send_at?: string | null
+          signup_source?: string | null
+          status?: string
+          timezone?: string | null
         }
         Relationships: []
       }

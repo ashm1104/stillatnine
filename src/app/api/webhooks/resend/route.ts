@@ -118,8 +118,15 @@ async function flagRecipients(event: ResendEvent, column: "bounced" | "complaine
 
   const patch = column === "bounced" ? { bounced: true } : { complained: true };
   const supabase = createAdminClient();
-  const { error } = await supabase.from("users").update(patch).in("email", emails);
-  if (error) throw error;
+
+  // Flag the address wherever it lives — buyers (users) and/or funnel
+  // subscribers. Subscribers store email lowercased; users keep Dodo's casing.
+  const { error: uErr } = await supabase.from("users").update(patch).in("email", emails);
+  if (uErr) throw uErr;
+
+  const lowered = [...new Set(emails.map((e) => e.toLowerCase()))];
+  const { error: sErr } = await supabase.from("subscribers").update(patch).in("email", lowered);
+  if (sErr) throw sErr;
 }
 
 /** Best-effort open tracking: stamp the matching delivery row's opened_at. */

@@ -127,7 +127,66 @@ async function handlePaymentSucceeded(payment: Payment) {
     return;
   }
 
+  // If this buyer came through the free funnel, graduate them: exit the
+  // sequence and carry their already-read free stories into the paid playlist
+  // so they're never re-sent (see launch-reference.md — "buyers never receive
+  // duplicates"). Best-effort: never block account creation / welcome email.
+  await graduateSubscriber(supabase, email, inserted![0].id);
+
   await sendWelcomeEmail(email, inserted![0].id);
+}
+
+/**
+ * Carry a converting subscriber's free-story history onto the new buyer record:
+ * mark the subscriber `purchased` (exits the funnel) and pre-seed
+ * delivery_history with status='free_carryover' rows for each collection story
+ * (1..24) they already received. The delivery Edge Function's playlist excludes
+ * these, but they DON'T count as a paid slot — so "first story tonight" holds.
+ */
+async function graduateSubscriber(
+  supabase: ReturnType<typeof createAdminClient>,
+  email: string,
+  userId: string,
+) {
+  try {
+    const { data: sub } = await supabase
+      .from("subscribers")
+      .select("id")
+      .eq("email", email)
+      .maybeSingle();
+    if (!sub) return; // direct buyer, never in the funnel
+
+    const { data: sends } = await supabase
+      .from("story_sends")
+      .select("story_number")
+      .eq("subscriber_id", sub.id)
+      .eq("status", "sent")
+      .not("story_number", "is", null);
+
+    const received = [
+      ...new Set(
+        (sends ?? [])
+          .map((s) => s.story_number)
+          .filter((n): n is number => typeof n === "number" && n >= 1 && n <= 24),
+      ),
+    ];
+    if (received.length) {
+      await supabase.from("delivery_history").insert(
+        received.map((story_number) => ({
+          user_id: userId,
+          story_number,
+          status: "free_carryover",
+        })),
+      );
+    }
+
+    await supabase
+      .from("subscribers")
+      .update({ status: "purchased", next_send_at: null })
+      .eq("id", sub.id);
+  } catch (err) {
+    console.error("[dodo webhook] subscriber graduation failed:", err);
+  }
 }
 
 async function sendWelcomeEmail(email: string, userId: string) {
